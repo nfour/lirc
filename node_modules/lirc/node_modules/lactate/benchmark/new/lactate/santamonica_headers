@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Content-Type: image/jpeg
+Content-Encoding: gzip
+Last-Modified: Tue, 12 Jun 2012 15:51:59 GMT
+Expires: Tue, 24 Jul 2012 18:23:49 GMT
+Cache-Control: max-age=172800
+Date: Sun, 22 Jul 2012 18:23:58 GMT
+Connection: keep-alive
+

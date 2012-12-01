@@ -1,31 +1,26 @@
 
 lirc = require 'lirc'
-
+cluster = require 'cluster'
 
 #console.log lirc
 
-cfg = {
-	user		:
-		nick		: 'Botty????'
-		username	: 'Botty'
-		realname	: 'Mr BotVille'
+cfg = require './cfg'
 
-	server:
-		host		: 'irc.freenode.com'
-		port		: 6667
-		pass		: ''
-}
-
-console.log 'botscope'
-console.log lirc
+console.log 'botty started', cluster.worker.id
 
 lirc cfg
 lirc.connect()
-lirc.web()
+#lirc.web()
 lirc.on 'data', (data) -> console.log 'data', data
 #lirc.on '*', (name, arg) -> console.log name, arg
 
+setInterval(
+	() -> lirc.botnet.send { cmd: 'emit', args: ['BOTMSG', 'yep'] }
+	10000
+)
 
+lirc.botnet.on '*', (data) ->
+	console.log 'botty got a botnet', data
 
 ###
 ircbot	= irc cfg

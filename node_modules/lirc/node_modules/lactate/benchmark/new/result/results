@@ -1,0 +1,12 @@
+
+Lactate
+Requests per second:    2869.48 [#/sec] (mean)
+Requests per second:    2162.08 [#/sec] (mean)
+
+node-static
+Requests per second:    2198.88 [#/sec] (mean)
+Requests per second:    1973.18 [#/sec] (mean)
+
+connect
+Requests per second:    1195.20 [#/sec] (mean)
+Requests per second:    826.40 [#/sec] (mean)
