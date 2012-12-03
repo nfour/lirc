@@ -1,9 +1,0 @@
-HTTP/1.1 200 OK
-Content-Type: application/javascript
-Content-Encoding: gzip
-Last-Modified: Thu, 29 Mar 2012 18:19:50 GMT
-Expires: Tue, 24 Jul 2012 18:19:31 GMT
-Cache-Control: max-age=172800
-Date: Sun, 22 Jul 2012 18:20:56 GMT
-Connection: keep-alive
-

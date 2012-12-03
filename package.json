@@ -1,8 +1,0 @@
-{
-	"name"			: "lance-irc",
-	"version"		: "0.1.0",
-	"main"			: "./index",
-	"scripts": {
-		"start": "node index"
-	}
-}
