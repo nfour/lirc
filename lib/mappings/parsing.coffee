@@ -1,77 +1,91 @@
 
 lirc = require '../lirc'
 
-###
-	One of these will be called (in order) if the msg.cmd
-	matches via regexp or a string comparison
-###
+
+# Matches one array, in order. Indexes to the callbacks are cached on match.
+
+# Deleting of msg.remains temporary
 
 module.exports = [
 	[
-		///
-			PRIVMSG
-		|	NOTICE
-		///
-		(msg) -> # :Nick!~Ident@CPE-123-211-37-152.lnse3.cha.bigpond.net.au PRIVMSG #test5000 :hai
-			if matches = msg.fulltext.match /^:(\S+) (\S+) (\S+) :(.*)/
-				matches.shift()
-				[
-					msg.from
-					msg.cmd
-					msg.to
-					msg.text
-				] = matches
-
-				msg.words = msg.text.split ' ' # temp
-				msg.mask = lirc.parse.mask msg.from
-	]
-	[
-		'PING'
+		'JOIN'
 		(msg) ->
-			if matches = msg.fulltext.match /^(\S+) :(.+)/
-				matches.shift()
-				[
-					msg.cmd
-					msg.from
-				] = matches
+			msg.chan = msg.args or msg.text
+			msg.mask = lirc.parse.mask msg.origin
+
+			delete msg.text
+			delete msg.args
 	]
 	[
 		'MODE'
 		(msg) ->
-			return msg if msg.words.length < 2
+			args = msg.args.split ' '
 
-			msg.to			= msg.words[0]
-			msg.modes		= msg.words[1] or ''
-			msg.modeArg		= msg.words[2] or ''
+			msg.target	= args[0]
+			msg.flags	= msg.text or args[1] or ''
+
+			delete msg.text
+			delete msg.args
 	]
 	[
-		'RPL_NAMEREPLY'
+		# args: <target>
+		/// ^ (
+			PRIVMSG
+		|	NOTICE
+		) $ ///
 		(msg) ->
-			return msg if msg.words.length < 3
-			# unfinished ################################
-			#msg.users		= msg.users[0].replace /^:/, ''
-			msg.to			= msg.words[1]
-			#msg.users		= msg.words[2..]
+			msg.target	= msg.args
+			msg.mask	= lirc.parse.mask msg.origin
+
+			delete msg.args
 	]
 	[
-		/RPL_(MOTD|MOTDSTART)/
+		# args: <target>
+		/// ^
+			RPL_(
+				MOTD
+			|	MOTDSTART
+			|	ENDOFMOTD
+			)
+		$ ///
 		(msg) ->
-			msg.words[0].replace /^\-/, ''
+			msg.target	= msg.args
+			msg.text	= msg.text.replace /^\-\s?/, ''
+
+			delete msg.args
 	]
 	[
-		'RPL_WELCOME'
+		# args: <target> <chan>
+		/// ^ (
+			RPL_(
+				ENDOFNAMES
+			)
+		) $ ///
 		(msg) ->
-			lirc.session.server.realhost = msg.from
+			args = msg.args.split ' '
+
+			msg.target	= args[0] or ''
+			msg.chan	= args[1] or ''
+
+			delete msg.args
+			delete msg.text
 	]
-
 	[
-		/\S/ # fallback, always called
+		# args: <target> [@*=] <chan>
+		/// ^ (
+			RPL_(
+				NAMREPLY
+			)
+		) $ ///
 		(msg) ->
-			return msg if msg.words.length < 2
+			args = msg.args.split ' '
 
-			msg.to			= msg.words[0]
+			msg.target	= args[0] or ''
+			msg.mode	= args[1] or ''
+			msg.chan	= args[2] or ''
+			msg.names	= msg.text.split ' '
 
-			msg.words		= msg.words[1..]
-			msg.words[0]	= msg.words[0].replace /^:/, ''
+			delete msg.args
+			delete msg.text
 	]
 ]

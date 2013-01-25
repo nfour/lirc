@@ -8,11 +8,11 @@ module.exports = {
 	input: (text) ->
 		console.log 'web input', text
 
-		web.io.sockets.emit 'input', text
+		web.send 'input', text
 
 		words	= text.split ' '
-		cmd		= words[0][1..]
-
+		cmd		= words[0].replace /^\./, ''
+		
 		if cmd is 'join' and words.length > 2
 			lirc.join words[1], words[2] or ''
 

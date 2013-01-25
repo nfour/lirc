@@ -5,7 +5,7 @@ platform	= process.platform
 rootDir		= path.dirname __dirname
 
 url			= {}
-url.root	= ''
+url.root	= 'http://67.230.163.188'
 url.static	= url.root + '/static'
 
 server = {

@@ -39,7 +39,8 @@ botnet.send = () ->
 
 	if cluster.isMaster
 		for key, worker of botnet.bots
-			workerId = obj.workerId.toString() or 0 
+			workerId = 0
+			if obj.workerId? then workerId = obj.workerId.toString()
 
 			if key isnt workerId
 				worker.send obj
@@ -58,19 +59,16 @@ botnet.send.parseArgs = (args) ->
 
 	return obj
 
-
 botnet.send.master = () ->
 	return false if not 'send' of process
 
 	obj = botnet.send.parseArgs arguments
 
 	obj.workerId = cluster.worker.id
+
 	process.send obj
 
-
 botnet.send.worker = () -> # have this take worker obj or worker id
-
-
 
 botnet.listeners = {
 	master: require './listeners/master'

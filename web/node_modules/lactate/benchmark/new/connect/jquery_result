@@ -1,0 +1,43 @@
+This is ApacheBench, Version 2.3 <$Revision: 655654 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /jquery.min.js
+Document Length:        94840 bytes
+
+Concurrency Level:      100
+Time taken for tests:   0.837 seconds
+Complete requests:      1000
+Failed requests:        0
+Write errors:           0
+Total transferred:      95107000 bytes
+HTML transferred:       94840000 bytes
+Requests per second:    1195.20 [#/sec] (mean)
+Time per request:       83.668 [ms] (mean)
+Time per request:       0.837 [ms] (mean, across all concurrent requests)
+Transfer rate:          111008.11 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    2   2.7      1      11
+Processing:    14   80  10.3     82     141
+Waiting:       10   47  12.7     46     117
+Total:         15   82  11.1     84     142
+
+Percentage of the requests served within a certain time (ms)
+  50%     84
+  66%     84
+  75%     85
+  80%     86
+  90%     91
+  95%     93
+  98%    113
+  99%    141
+ 100%    142 (longest request)

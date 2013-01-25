@@ -1,12 +1,14 @@
 
 # requires jquery >= 1.7.0
 
-$$ = undefined
+$html	=
+$$		= undefined
 
 cfg = {
 	scrollbar: {
 		scrollInertia: 0
 	}
+
 	server: { # could also be a url. may be best to do this
 		port: 8765
 		host: 'localhost'
@@ -23,28 +25,31 @@ $(document).ready ->
 		terminal_caret	: $('.terminal .caret')
 		terminal_input	: $('.terminal .input input')
 
-		tabs		: $('.tabs')
-		tab_buttons	: $('.tabs .tab')
+		tabs		: $('.terminal-tabs')
+		tab_buttons	: $('.terminal-tabs .tab')
 		tab_contents: $('.content .tab-content')
+
+		bot_tabs		: $('.bot-tabs')
+		bot_tab_buttons	: $('.bot-tabs .tab')
+		bot_tab_contents: $('.bot-content')
 
 		content: $('.content')
 	}
 
-	# init mCustomScrollbar plugin
-	$$.content.mCustomScrollbar cfg.scrollbar
+	$html = {
+		terminal	: $('.terminal-outer')
+		tab			: $('.terminal-tabs > .tab')
+		bot_tab		: $('.bot-tabs > .tab')
+		bot_content	: $('.bot-content')
+	}
 
-	# scroll to the bottom of the feed (such as if there are buffered lines)
-	terminal.scrollbar.scroll $$.content, 'bottom'
+	for key, val in $html
+		$html[key] = $('<div>').append( val.clone() ).html()
 
 	server.conn = conn = io.connect "http://#{ cfg.server.host }:#{ cfg.server.port }"
 
 	# bind listeners to the server
 	bind server.listeners, conn
-
-	# bind listeners to selectors
-	bind terminal.input.listeners, $$.terminal_input
-
-	terminal.buildTabs()
 
 # scope variables
 
@@ -52,47 +57,51 @@ server = {
 	conn: undefined
 
 	listeners: {
-		msg: (msg) ->
-			console.log 'Recieved msg:', msg
+		msg: (bot, msg) ->
+			terminal.add bot, 'all', server.prettyMsg msg
 
-			terminal.add 'all', server.prettyMsg msg
-
-			if msg.cmd.match /^(BOTMSG|WEBMSG)$/i
-				terminal.add 'botnet', server.prettyMsg msg
+			if msg.cmd is 'BOTMSG'
+				terminal.add bot, 'botnet', server.prettyMsg msg
 			else
-				terminal.add 'irc', server.prettyMsg msg
+				terminal.add bot, 'irc', server.prettyMsg msg
 
-		data: (data) ->
+		data: (bot, data) ->
 			console.log 'Recieved data:', data
 
-			terminal.add 'raw_irc', data
+			terminal.add bot, 'raw_irc', data
 
-		input: (data) ->
+		input: (bot, data) ->
 			console.log 'Recieved data:', data
 
-			terminal.addInput data
+			terminal.addInput bot, data
 
-		send: (data) ->
-			terminal.addInput 'SEND ' + data # need to change addInput to addAll or something
+		send: (bot, data) ->
+			terminal.addInput bot, 'SEND ' + data # need to change addInput to addAll or something
 
-		botmsg: (data) ->
+		botmsg: (bot, data) ->
 			console.log 'Recieved data:', data
 
-			terminal.add 'botnet', data
+			terminal.add bot, 'botnet', data
+
+		botinfo: (bot, names) ->
+			terminal.buildTerminal names
+
 	}
 
 	prettyMsg: (msg) ->
-		{from, to, cmd, words} = msg
+		ary = []
 
-		if not ( from or to or cmd or words.join('') )
-			return ''
+		ary.push "[ #{msg.cmd} ]"
 
-		route	= "#{ if from then from else '' }#{ if to then ' > ' + to else '' }"
-		route	+= ' ' if route
+		for key, val of msg
+			if key.match /^(raw|words|cmd|remains|origin)$/ then continue
+			if key is 'target22'
+				continue if not val or val is lirc.session.server.user.nick
+			ary.push "#{key}=\"#{val}\""
 
-		content	= words.join ' '
+		result = ary.join ', '
 
-		result = "#{ route }'#{ cmd or '' }' #{ content }"
+		result = result.replace /\ /g, '&nbsp;'
 
 		return result
 }
@@ -102,7 +111,7 @@ terminal = {
 		submit: (text) ->
 			return false if not text
 
-			$$.terminal_input.attr 'value', ''
+			$('.terminal .input input').attr 'value', ''
 
 			if text = terminal.input.parse text
 				terminal.input.send text
@@ -136,86 +145,157 @@ terminal = {
 					return false
 
 			focus: ->
-				$$.terminal_caret.toggleClass 'active'
+				$(this).siblings('.caret').toggleClass 'active'
 
 			focusout: ->
-				$$.terminal_caret.removeClass 'active'
+				$(this).siblings('.caret').removeClass 'active'
 
 		}
 
 	}
 
-	add: (tabName, text = '') ->
-		return false if tabName not of terminal.tabMap
+	add: (bot, tabName, text = '') ->
+		return false if tabName not of terminal.botMap[bot].tabs
 
-		tab = terminal.tabMap[tabName]
-
-		++tab.lines
+		tab = terminal.botMap[bot].tabs[tabName]
 
 		now = new Date()
 		nowFormatted = now.getMonth() + '.' + now.getDate() + ' ' + now.getHours() + ':' + now.getMinutes()
 		timestamp = "<span class='timestamp' data='#{ now.getTime() }'>#{ nowFormatted }</span>"
 
-		tab.content.append "<li value='#{ tab.lines }'>#{ text }</li>\n"
+		tab.content.append "<li value='#{ tab.lines }'>#{ timestamp + text }</li>\n"
+		++tab.lines
 
 		if tab.content.hasClass 'active'
-			terminal.scrollbar.update $$.content
-			terminal.scrollbar.scroll $$.content, 'bottom'
+			terminal.scrollbar.update bot
+			terminal.scrollbar.scroll bot, 'bottom'
 
-	addInput: (text = '') ->
+	addInput: (bot, text = '') ->
 		identifier = "<span class=\"caret\">&gt;&gt;</span>"
 
-		for key of terminal.tabMap
-			terminal.add key, identifier + text
+		for tabName of terminal.botMap[bot].tabs
+			terminal.add bot, tabName, identifier + text
 
 		return true
 
-	tabMap: {}
+	botMap: {}
 
-	buildTabs: ->
-		buttons				= $$.tab_buttons
-		contentContainer	= $$.content
+	buildTabs: (bot, container) ->
+		buttons = $(".terminal-tabs .tab", container)
 
-		terminal.tabMap = {}
+		tabs = {}
 
 		buttons.each () ->
 			button	= $(this)
 			name	= button.attr 'name'
-			content	= $(".tab-content[name=\"#{ name }\"]", contentContainer)
+			content	= $(".content .tab-content[name=\"#{ name }\"]", container)
 
-			terminal.tabMap[name] = {
+			tabs[name] = {
 				button
 				content
 				lines: 0
 			}
 
 			button.click () ->
-				terminal.switchTab $(this)
+				do -> terminal.switchTab bot, button
 
-		return true
+		return tabs
 
-	switchTab: (selector) ->
+	buildTerminal: (names) ->
+		for name in names
+			map = {}
+
+			# button
+			if existing = $('.bot-tabs .tab:not([name])')[0] or $(".bot-tabs .tab[name=#{name}]")[0]
+				map.button = $(existing)
+					.attr( 'name', name )
+					.html( name )
+			else
+				container = $('.bot-tabs')
+
+				button = $('<div class="tab">')
+					.attr( 'name', name )
+					.html( name )
+
+				map.button = $( button.appendTo container )
+
+			map.button.click () ->
+				terminal.switchBotTab $(this)
+
+			# content
+			if existing = $('.bot-content:not([name])')[0] or $(".bot-content[name=#{name}]")[0]
+				map.content = $(existing)
+					.attr( 'name', name )
+			else
+				container = $('.terminal-outer')
+
+				content = $('<div class="bot-content">')
+					.attr( 'name', name )
+					.html( $html.bot_content.html() )
+
+				map.content = $( content.appendTo container )
+
+			#if not map.content.find '.mCustomScrollbar'
+
+			# content tabs
+			map.tabs = terminal.buildTabs name, map.content
+
+			terminal.botMap[name] = map
+
+		terminal.scrollbar.build $('.content')
+
+		bind terminal.input.listeners, $('.terminal .input input')
+
+		return terminal.botMap
+
+	switchBotTab: (selector) ->
 		return false if selector.hasClass 'active'
 
-		name = selector.attr 'name'
+		bot = selector.attr 'name'
 
-		tab = terminal.tabMap[name]
+		tab = terminal.botMap[bot]
 
-		$$.tab_buttons.each -> $(this).removeClass 'active'
-		$$.tab_contents.each -> $(this).removeClass 'active'
+		$('.bot-tabs .tab').each -> $(this).removeClass 'active'
+		$('.bot-content').each -> $(this).removeClass 'active'
 
 		tab.button.addClass 'active'
 		tab.content.addClass 'active'
 
-		terminal.scrollbar.update $$.content
-		terminal.scrollbar.scroll $$.content, 'bottom'
+		terminal.scrollbar.update bot
+		terminal.scrollbar.scroll bot, 'bottom'
+
+	switchTab: (bot, selector) -> # MAKE THIS WORK ############ then make add() etc work
+		name = selector.attr 'name'
+		console.log 'name', name
+		return false if selector.hasClass('active') or not name
+
+		tab			= terminal.botMap[bot].tabs[name]
+		container	= terminal.botMap[bot].content
+
+		$('.terminal-tabs .tab', container).each -> $(this).removeClass 'active'
+		$('.tab-content', container).each -> $(this).removeClass 'active'
+
+		tab.button.addClass 'active'
+		tab.content.addClass 'active'
+
+		terminal.scrollbar.update bot
+		terminal.scrollbar.scroll bot, 'bottom'
 
 	scrollbar: {
-		scroll: (selector, pos) ->
-			selector.mCustomScrollbar 'scrollTo', pos
+		scroll: (bot, pos = 'bottom') ->
+			if bot
+				$(".bot-content[name=#{bot}] .mCustomScrollbar").mCustomScrollbar 'scrollTo', pos
+			else
+				$(".mCustomScrollbar").each -> $(this).mCustomScrollbar 'scrollTo', pos
 
-		update: (selector) ->
-			selector.mCustomScrollbar 'update'
+		update: (bot) ->
+			if bot
+				$(".bot-content[name=#{bot}] .mCustomScrollbar").mCustomScrollbar 'update'
+			else
+				$(".mCustomScrollbar").each -> $(this).mCustomScrollbar 'update'
+
+		build: ($obj) ->
+			$obj.mCustomScrollbar cfg.scrollbar
 	}
 }
 

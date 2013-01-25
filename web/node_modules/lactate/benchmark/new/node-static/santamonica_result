@@ -1,0 +1,43 @@
+This is ApacheBench, Version 2.3 <$Revision: 655654 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+
+
+Server Software:        node-static/0.6.0
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /santamonica.jpg
+Document Length:        227960 bytes
+
+Concurrency Level:      100
+Time taken for tests:   0.507 seconds
+Complete requests:      1000
+Failed requests:        0
+Write errors:           0
+Total transferred:      228224000 bytes
+HTML transferred:       227960000 bytes
+Requests per second:    1973.18 [#/sec] (mean)
+Time per request:       50.680 [ms] (mean)
+Time per request:       0.507 [ms] (mean, across all concurrent requests)
+Transfer rate:          439771.74 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    2   3.4      1      14
+Processing:    14   47   7.6     48      72
+Waiting:        6   32   8.7     33      52
+Total:         28   49   8.8     49      73
+
+Percentage of the requests served within a certain time (ms)
+  50%     49
+  66%     52
+  75%     53
+  80%     54
+  90%     57
+  95%     69
+  98%     70
+  99%     70
+ 100%     73 (longest request)

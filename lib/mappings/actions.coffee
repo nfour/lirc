@@ -10,26 +10,36 @@ module.exports = [
 	[
 		'PRIVMSG'
 		(msg) ->
-			# if the PRIVMSG is from a channel, emit as an event
-			# may want to only do this ONLY if there is already a listener for it
-			if msg.to
-				if msg.to[0].match /[\#&]/
-					lirc.emit 'CHANMSG', msg				# emits CHANMSG
-					lirc.emit msg.to, msg
-				else
-					lirc.emit 'USERMSG', msg
-	
+			if msg.target.match /^[\#&]/
+				lirc.emit 'CHANMSG', msg
+				lirc.emit msg.target, msg
+			else
+				lirc.emit 'USERMSG', msg
+	]
+	[
+		'NOTICE'
+		(msg) ->
+			#if msg.target is 'AUTH'
+
+
 	]
 	[
 		'PING'
 		(msg) ->
-			lirc.send "PONG #{ msg.from }"
+			lirc.send 'PONG', msg.text
 	]
 	[
 		'RPL_MOTDSTART'
 		(msg) ->
-			str = msg.words.join(' ') + '\r\n'
-			lirc.session.server.motd = str
+			text = msg.text + '\r\n'
+			lirc.session.server.motd = text
+	]
+	[
+
+		'RPL_MOTD'
+		(msg) ->
+			text = msg.text + '\r\n'
+			lirc.session.server.motd += text
 	]
 	[
 		'RPL_ENDOFMOTD'
@@ -37,9 +47,8 @@ module.exports = [
 			lirc.emit 'MOTD', lirc.session.server.motd
 	]
 	[
-		'RPL_MOTD'
+		'RPL_WELCOME'
 		(msg) ->
-			str = msg.words.join(' ') + '\r\n'
-			lirc.session.server.motd += str
+			lirc.session.server.realhost = msg.origin
 	]
 ]

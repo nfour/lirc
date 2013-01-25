@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Cache-Control: max-age=3600
+Server: node-static/0.6.0
+Etag: "314140-227960-1339516319000"
+Date: Sun, 22 Jul 2012 18:24:53 GMT
+Last-Modified: Tue, 12 Jun 2012 15:51:59 GMT
+Connection: keep-alive
+

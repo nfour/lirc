@@ -6,21 +6,18 @@ lirc = require './lirc'
 
 format = {
 	log: (msg) ->
-		{from, to}	= msg
+		ary = []
 
-		if msg.from is lirc.session.server.realhost
-			from = 'server'
+		ary.push "[ #{msg.cmd} ]"
+		ary.push "remains=\"#{msg.remains}\"" if msg.remains
 
-		if to is lirc.session.server.user.nick
-			to = 'me'
+		for key, val of msg
+			if key.match /^(raw|words|cmd|remains|origin)$/ then continue
+			if key is 'target22'
+				continue if not val or val is lirc.session.server.user.nick
+			ary.push "#{key}=\"#{val}\""
 
-		route	= "#{ from }#{ if to then ' > ' + to }"
-		route	+= ' ' if route
-
-		content	= msg.words.join ' '
-
-		#result = "#{ route }'#{ msg.command }' #{ content }"
-		result = "[#{ msg.cmd }] #{ content }"
+		result = ary.join ', '
 
 		return result
 
@@ -52,6 +49,7 @@ format = {
 }
 
 format.substitute.vars.vars = { # will be added to by each module
+
 }
 
 lirc.format		=

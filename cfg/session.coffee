@@ -1,4 +1,6 @@
 
+cluster = require 'cluster'
+
 module.exports = {
 	msgBuffer	: null
 	me			: ''
@@ -8,7 +10,8 @@ module.exports = {
 		pass: ''
 
 		user: {
-			nick: '', username: '', realname: '', pass: ''
+			nick: '', username: '', realname: '', pass: '',
+			hostname: '', servername: ''
 		}
 
 		chans: {}
@@ -19,3 +22,6 @@ module.exports = {
 	}
 	servers	: []
 }
+
+if cluster.isMaster
+	module.exports.me = 'master'

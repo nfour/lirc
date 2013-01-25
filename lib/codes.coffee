@@ -1,5 +1,6 @@
 
-# See: http://tools.ietf.org/html/rfc2812
+# See:		http://tools.ietf.org/html/rfc2812
+# and		https://www.alien.net.au/irc/irc2numerics.html
 
 module.exports = {
 	"001": "RPL_WELCOME"			# Welcome to the Internet Relay Network <nick>!<user>@<host>
@@ -43,6 +44,7 @@ module.exports = {
 	"244": "RPL_STATSHLINE"
 	"250": "RPL_STATSDLINE"
 
+
 	"251": "RPL_LUSERCLIENT"		# :There are <integer> users and <integer> services on <integer> servers
 	"252": "RPL_LUSEROP"			# <integer> :operator(s) online
 	"253": "RPL_LUSERUNKNOWN"		# <integer> :unknown connection(s)
@@ -53,6 +55,11 @@ module.exports = {
 	"257": "RPL_ADMINLOC1"			# :<admin info>
 	"258": "RPL_ADMINLOC2"			# :<admin info>
 	"259": "RPL_ADMINEMAIL"			# :<admin info>
+
+	"263": "RPL_TRYAGAIN"			# <command> :<info> 
+
+	"265": "RPL_LOCALUSERS"
+	"266": "RPL_GLOBALUSERS"
 
 	"300": "RPL_NONE"
 	"301": "RPL_AWAY"				# <nick> :<away message>
@@ -93,7 +100,7 @@ module.exports = {
 	"352": "RPL_WHOREPLY"			# <channel> <user> <host> <server> <nick> ( "H" / "G" > ["*"] [ ( "@" / "+" ) ] :<hopcount> <real name>
 	"315": "RPL_ENDOFWHO"			# <name> :End of WHO list
 
-	"353": "RPL_NAMEREPLY"			# ( "=" / "*" / "@" ) <channel> :[ "@" / "+" ] <nick> *( " " [ "@" / "+" ] <nick> ) --- "@" is used for secret channels, "*" for private channels, and "=" for others (public channels).
+	"353": "RPL_NAMREPLY"			# ( "=" / "*" / "@" ) <channel> :[ "@" / "+" ] <nick> *( " " [ "@" / "+" ] <nick> ) --- "@" is used for secret channels, "*" for private channels, and "=" for others (public channels).
 	"366": "RPL_ENDOFNAMES"			# <channel> :End of NAMES list
 
 	"364": "RPL_LINKS"				# <mask> <server> :<hopcount> <server info>

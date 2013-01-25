@@ -1,5 +1,6 @@
 
-lirc = require '../../lirc'
+lirc	= require '../../lirc'
+cluster	= require 'cluster'
 
 {type} = Function
 
@@ -21,7 +22,6 @@ module.exports = {
 
 			# emit to lirc.web
 
-			when 'web.emit'
-				lirc.web.emit.apply lirc.web, message.args
-
+			when 'get::botinfo'
+				lirc.botnet.send.master 'botinfo', [lirc.session.me, lirc.cfg, cluster.worker.id]
 }

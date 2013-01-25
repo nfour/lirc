@@ -5,60 +5,62 @@ codes	= require './codes'
 {merge, clone} = Object
 {type} = Function
 
+# This definition of "parse": Deconstruct something, then use that to
+# do something else and/or simply return the deconstruction
 
-msgBuffer		= null
+rawBuffer		= null
 mappingIndexes	= {}
 
 parse = {
-	data: (text = '') ->
+	raw: (text = '') ->
 		return text if type( text ) isnt 'string'
 
 		lines = text.split '\r\n'
 
-		if msgBuffer
-			lines[0]	= msgBuffer + lines[0]
-			msgBuffer	= null
+		if rawBuffer
+			lines[0]	= rawBuffer + lines[0]
+			rawBuffer	= null
 
 		if not text.match /\r\n$/
-			msgBuffer	= lines[-1..][0]
+			rawBuffer	= lines[-1..][0]
 		
 		lines.pop()
 
 		for line in lines
 			msg = lirc.parse.msg line
 
-			parse.mapping 'parsing', msg
-			parse.mapping 'actions', msg
+			parse.mapping 'parsing', msg			# cumulative argument parsing
+			parse.mapping 'actions'	, msg			# pong replies, emits, etc.
 
-			# emit to self and to the master ( only so that it may relay to the web interface )
 			lirc.emit 'msg', msg
-			lirc.botnet.send.master 'emit::master', ['msg', msg]	# may want to in future add cfg option to use
-																	# 'emit', sending to master and all workers thus sharing all data
-		return msg
+			lirc.botnet.send.master 'web.emit::master', ['msg', msg]
 
-	msg: (text = '') ->
+		return true
+
+	msg: (raw = '') ->
 		msg = {
-			fulltext	: text
-			from		: ''
-			to			: ''
+			raw			: raw
+			origin		: ''
 			cmd			: 'UNKNOWN'
-			words		: []
+			args		: ''
+			text		: ''
 		}
 
-		return msg if not text
+		# [:<origin>] <cmd> [<args>] [:<text>]
+		if msg and m = raw.match ///
+			^ (?: :(\S+) \s )?						# origin
+			(\S+)									# cmd
+			(?: \s
+				(?: ( [^:]+ ) )?		# args
+				(?: :(.*) )?						# text
+			)?
+		///
+			msg.origin		= m[1] if m[1]
+			msg.cmd			= m[2] if m[2]
+			msg.args		= m[3].replace /\s$/, '' if m[3]
+			msg.text		= m[4] if m[4]
 
-		words = text.split ' '
-		
-		if words[0][0] is ':'
-			msg.from	= words[0].replace /^:/, ''
-			words		= words[1..]
-
-		return msg if not words.length
-
-		msg.cmd		= lirc.parse.command words[0]
-		words		= words[1..]
-
-		msg.words = words
+			msg.cmd = lirc.parse.command msg.cmd if msg.cmd
 
 		return msg
 
@@ -97,18 +99,21 @@ parse = {
 			ident: ''
 			host: ''
 			domain: ''
+			raw: mask
 		}
 
-		matches = mask.match /^(.+)!~?(.+)@([^\.]+)\.(.+)/
-		matches.shift()
-
-		if matches?.length
+		if m = mask.match /// ^
+			(.+) !~? 			# nick
+			(.+) @				# ident
+			([^\.]+) \.			# host
+			(.+)				# domain
+		///
 			[
 				obj.nick
 				obj.ident
 				obj.host
 				obj.domain
-			] = matches
+			] = m[1..]
 
 		return obj
 }

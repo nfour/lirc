@@ -9,52 +9,48 @@ module.exports = {
 	message: (message) ->
 		return false if type( message ) isnt 'object'
 
-		# message is { cmd: '', args: [], workerId: 0 }
+		# change this so that there is a "masterOnly" var in obj, which would simplify the below cmds
 
-		switch message.cmd
-			# emit to lirc.emit
+		if message.cmd.match /^([^\.]+.)?emit\b/
+			return false if not message.args
 
-			when 'emit::master'
-				lirc.emit.apply lirc, message.args
+			name = message.args[0] or ''
 
-			when 'emit'
-				lirc.emit.apply lirc, message.args
+			switch message.cmd
+				when 'emit::master'
+					lirc.emit.apply lirc, message.args
 
-				lirc.botnet.send message
+				when 'emit'
+					lirc.emit.apply lirc, message.args
 
-			# emit to lirc.botnet.emit
+					lirc.botnet.send message
 
-			when 'botnet.emit::master'
-				lirc.botnet.emit.apply lirc.botnet, message.args
+				when 'botnet.emit::master'
+					lirc.botnet.emit.apply lirc.botnet, message.args
 
-			when 'botnet.emit'
-				lirc.botnet.emit.apply lirc.botnet, message.args
+				when 'botnet.emit'
+					lirc.botnet.emit.apply lirc.botnet, message.args
 
-				lirc.botnet.send message
+					lirc.botnet.send message
 
-			# emit to lirc.web.emit
+				when 'web.emit::master'
+					lirc.web.emit name, message
 
-			when 'web.emit::master'
-				lirc.web.emit.apply lirc.web, message.args
+				when 'web.emit'
+					lirc.web.emit name, message
 
-			when 'web.emit'
-				lirc.web.emit.apply lirc.web, message.args
+					lirc.botnet.send message
 
-				lirc.botnet.send message
+		else
+			switch message.cmd
+				when 'relay'
+					lirc.botnet.send.worker message
 
-			when 'relay'
-				lirc.botnet.send.worker message
+				when 'botinfo'
+					id = message.workerId or message.args[2]
 
-			# TODO: switch 'emit' and 'emit.botnet' around. extend argument count of all "emit" functions
-			# complete the "relay" send to worker shit. perhaps rename from relay to "toWorker" or something more obvious
-			# import color formatting, irc code pairs, vastly enhance "msg" accuracy
-			# done-ish! this would be a v0.5 release
-			# create working scripts, extend functionality where obviously required - the core seems fleshed
+					if id of lirc.botnet.bots
+						lirc.botnet.bots[id].name	= message.args[0] or id
+						lirc.botnet.bots[id].cfg		= message.args[1] or {}
 
-
-
-
-	exit: (data) ->
-		lirc.emit 'botexit', lirc.parse.data data
-	
 }

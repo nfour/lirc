@@ -4,6 +4,7 @@ tls		= require 'tls'
 crypto	= require 'crypto'
 path	= require 'path'
 lance	= require 'lance'
+cluster = require 'cluster'
 
 {merge, clone} = Object
 {type, empty} = Function
@@ -18,6 +19,9 @@ lirc			= (newCfg = {}, doConnect = false) ->
 
 	if doConnect
 		return lirc.connect()
+
+	if cluster.isWorker
+		lirc.botnet.send.master 'botinfo', [lirc.session.me, lirc.cfg, cluster.worker.id]
 
 	return lirc
 
@@ -108,8 +112,8 @@ lirc.auth = (user) ->
 
 	userStr = [
 		user.username
-		user.username
-		user.username
+		user.hostname or user.username
+		user.server or user.username
 		':' + user.realname
 	].join ' '
 
@@ -119,76 +123,6 @@ lirc.auth = (user) ->
 	lirc.send 'NICK', user.nick
 	lirc.send 'USER', userStr
 
-lirc.send = () ->
-	text = Array::slice.call( arguments ).join(' ')
-	text = lirc.format.substitute.vars text
-
-	if lirc.session.conn
-		str = "#{ text }\r\n"
-
-		lirc.session.conn.write str
-		lirc.botnet.send.master 'emit::master', ['send', str]
-
-		console.log 'send', str
-
-		return true
-
-	return false
-
-lirc.join = (chans, chanKey) ->
-	chans = chans or lirc.cfg.chans # TODO: cfg format not stable
-
-	return false if empty chans
-
-	if type( chans ) is 'string'
-		if chanKey
-			chans = [[chans, chanKey]] # TODO: may want to change format to objects
-		else
-			chans = [chans]
-
-	lists = {
-		chans	: []
-		keys	: []
-	}
-
-	for chan in chans
-		if type( chan ) is 'array'
-			lists.chans.push chan[0]
-			lists.keys.push chan[1] if chan[1]
-		else
-			lists.chans.push chan
-
-	text = lists.chans.join ','
-	text += ' ' + lists.keys.join ',' if lists.keys
-
-	#@session.server.chans[] remember to add this shit when confirmation of chan join event pops
-
-	lirc.send "JOIN #{ text }"
-
-lirc.part = (chans) ->
-	chans = chans or lirc.session.server.chans # TODO: session format not stable
-
-	return false if not2 chans
-
-	if type( chans ) is 'string'
-		chans = [chans]
-	
-	list = []
-	for chan in chans
-		if type( chan ) is 'array'
-			list.push chan[0]
-		else
-			list.push chan
-
-	text = list.join ','
-
-	lirc.send "PART #{ text }"
-
-lirc.mode = (text) -> # TODO: need to parse add arguments
-	return false if not text
-
-	lirc.send "MODE #{ text }"
-
 # Extend lirc
 
 lirc.listeners = {
@@ -196,8 +130,8 @@ lirc.listeners = {
 }
 
 lirc.mappings = {
-	parsing: require './mappings/parsing'
-	actions: require './mappings/actions'
+	parsing			: require './mappings/parsing'
+	actions			: require './mappings/actions'
 }
 
 # Each module below extends lirc on it own
@@ -206,8 +140,9 @@ require './format'
 require './parse'
 require './emitter'
 require './session'
+require './commands'
 require './botnet/botnet'
-require '../web'
+require '../web' if cluster.isMaster
 
 module.exports = lirc
 

@@ -4,9 +4,11 @@ cluster = require 'cluster'
 
 module.exports = {
 	data: (data) ->
-		lirc.emit 'data', data
-		lirc.botnet.send.master 'emit::master', ['data', data]
-		lirc.parse.data data
+		lirc.emit 'raw', data
+
+		lirc.botnet.send.master 'web.emit::master', ['raw', data]
+
+		lirc.parse.raw data
 
 	connect: () ->
 		console.log 'Socket, Connect'
