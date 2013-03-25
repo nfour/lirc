@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<link media="screen" type="text/css" href="<<= @url.static >>/style.css" rel="stylesheet" />
-		<script src="<<= @url.static >>/js/jquery.js"></script>
-		<script src="<<= @url.static >>/js/jquery-ui-1.8.23.custom.min.js"></script>
-		<script src="<<= @url.static >>/js/jquery.mousewheel.js"></script>
-		<script src="<<= @url.static >>/js/jquery.mCustomScrollbar.min.js"></script>
+		<link media="screen" type="text/css" href="<<= @site.url.static >>/style.css" rel="stylesheet" />
+		<script src="<<= @site.url.static >>/js/jquery.js"></script>
+		<script src="<<= @site.url.static >>/js/jquery-ui-1.8.23.custom.min.js"></script>
+		<script src="<<= @site.url.static >>/js/jquery.mousewheel.js"></script>
+		<script src="<<= @site.url.static >>/js/jquery.mCustomScrollbar.min.js"></script>
 	</head>
 	<body>
 		<div class="header">
-			<h1><a href="<<= @url.base >>">L<span class="name-irc">irc</span></a></h1>
+			<h1><a href="<<= @site.url.root >>">L<span class="name-irc">irc</span></a></h1>
 		</div>
 
 		<div class="core">
@@ -55,6 +55,6 @@
 			</ul>
 		</div>
 	</body>
-	<script src="<<= @url.static >>/js/socket.io.js"></script>
-	<script src="<<= @url.static >>/app.js"></script>
+	<script src="<<= @site.url.static >>/js/socket.io.js"></script>
+	<script src="<<= @site.url.static >>/app.js"></script>
 </html>

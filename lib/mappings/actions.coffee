@@ -50,5 +50,6 @@ module.exports = [
 		'RPL_WELCOME'
 		(msg) ->
 			lirc.session.server.realhost = msg.origin
+			lirc.emit 'connected'
 	]
 ]

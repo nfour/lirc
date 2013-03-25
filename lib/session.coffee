@@ -3,32 +3,30 @@ require './format'
 
 lirc = require './lirc'
 
-{merge, whiteMerge, cloneMerge, clone} = Object
-{empty} = Function
-
+{merge, clone} = Object
 
 # session remains a plain object for ease of use
-session	= require '../cfg/session'
+session =
+lirc.session = require '../cfg/session'
 
 defaultSession = clone session
 
-session.build	=
-build			= (cfg) ->
-	return session if empty cfg
+session.build = (cfg) ->
+	return session if not cfg
 
 	merge session, defaultSession # overwrites values to defaults
 
 	# servers
 
 	if cfg.server
-		whiteMerge session.server, cfg.server
+		merge session.server, cfg.server
 
 		session.servers.push session.server
 
 	else if cfg.servers
 		# iterate over specified servers, replacing values from defaults for each server
 		for obj in cfg.servers
-			session.servers.push whiteMerge merge( {}, defaultSession.server ), obj
+			session.servers.push merge merge( {}, defaultSession.server ), obj
 
 		# sets first server in array to the "current" session.server
 		session.server = session.servers[0]
@@ -54,9 +52,6 @@ build			= (cfg) ->
 	session.built = true
 
 	return session
-
-lirc.session	=
-module.exports	= session
 
 
 

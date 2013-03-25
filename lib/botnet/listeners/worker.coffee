@@ -2,6 +2,8 @@
 lirc	= require '../../lirc'
 cluster	= require 'cluster'
 
+{botnet, web} = lirc
+
 {type} = Function
 
 # cluster events, emitted to workers
@@ -14,14 +16,18 @@ module.exports = {
 
 		switch message.cmd
 			when 'emit'
-				lirc.emit.apply lirc, message.args
+				lirc.emit message.args
 
-			# emit to lirc.botnet
-			when 'botnet.emit'
-				lirc.botnet.emit.apply lirc.botnet, message.args
+			when 'emit.botnet'
+				botnet.emit.local message.args
 
-			# emit to lirc.web
-
-			when 'get::botinfo'
-				lirc.botnet.send.master 'botinfo', [lirc.session.me, lirc.cfg, cluster.worker.id]
+			when 'botnet.info.get'
+				botnet.emit.master {
+					cmd: 'botnet.info'
+					args: {
+						name: lirc.session.me
+						cfg	: lirc.cfg
+						id	: cluster.worker.id
+					}
+				}
 }

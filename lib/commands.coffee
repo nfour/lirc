@@ -5,20 +5,31 @@ lirc = require './lirc'
 {type, empty} = Function
 
 lirc.send = () ->
+	if not lirc.session.conn
+		return lirc.error 'err', "lirc.commands, no lirc.session.conn"
+
 	text = Array::slice.call( arguments ).join ' '
 	text = lirc.format.substitute.vars text
 
-	if lirc.session.conn
-		str = text + '\r\n'
+	str = text + '\r\n'
 
-		lirc.session.conn.write str
-		lirc.botnet.send.master 'emit::master', ['send', str]
+	lirc.session.conn.write str
+	lirc.botnet.emit.master {
+		cmd	: 'emit.master'
+		args: ['send', str]
+	}
 
-		console.log '>>', str
+	console.log '[SEND]', str
 
-		return true
+	return true
 
-	return false
+lirc.send.privmsg = (target, text) ->
+	lirc.send 'PRIVMSG', target, ":#{text}"
+
+lirc.send.mode = (target, text) -> # TODO: need to parse add arguments
+	return false if not text
+
+	lirc.send 'MODE', target, text
 
 lirc.join = (chans, chanKey) ->
 	chans = chans or lirc.cfg.chans # TODO: cfg format not stable
@@ -74,7 +85,3 @@ lirc.quit = (message = 'lirc') ->
 	
 	lirc.session.conn.end()
 
-lirc.mode = (target, text) -> # TODO: need to parse add arguments
-	return false if not text
-
-	lirc.send 'MODE', target, text

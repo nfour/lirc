@@ -5,23 +5,28 @@ cluster	= require 'cluster'
 
 {type} = Function
 
-module.exports	=
-lirc.emitter	= new events.EventEmitter()
+lirc.emitter = new events.EventEmitter()
 
 lirc.on = () ->
-	if type( arguments[0] ) is 'array'
-		for val in arguments[0]
-			args	= Array::slice.call arguments
-			args[0]	= val
+	if type( arguments[0] ) isnt 'array'
+		arguments[0] = [arguments[0]]
 
-			lirc.emitter.on.apply lirc.emitter, args
-	else
-		lirc.emitter.on.apply lirc.emitter, arguments
+	for val in arguments[0]
+		args	= Array::slice.call arguments
+		val		= val.toLowerCase()
+		args[0]	= val
 
-lirc.emit = (name) ->
+		lirc.emitter.on.apply lirc.emitter, args
+
+lirc.emit = () ->
 	args = Array::slice.call arguments
 
-	if name isnt '*'
+	if type( args[0] ) is 'array' and args.length is 1
+		args = args[0]
+	
+	args[0] = args[0].toLowerCase()
+
+	if args[0] isnt '*'
 		arguments.callee '*', args
 
 	lirc.emitter.emit.apply lirc.emitter, args

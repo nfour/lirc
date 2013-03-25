@@ -8,13 +8,13 @@ lactate		= require 'lactate'
 staticDir	= path.join path.dirname( __dirname ), '/static'
 lactate		= lactate.dir staticDir, web.cfg.lactate
 
-{route} = lance
+{router} = lance
 
-route.get [ '/static/*', '/:file(favicon.ico)' ], 'static', (req, res) ->
+router.get [ '/static/*', '/:file(favicon.ico)' ], 'static', (req, res) ->
 	filePath = req.path.file or req.splats.join '.'
 	lactate.serve filePath, req, res
 
-route.get '/', 'home', (req, res) ->
+router.get '/', 'home', (req, res) ->
 	res.serve req, res, 'home'
 
 

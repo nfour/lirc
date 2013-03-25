@@ -5,6 +5,7 @@ crypto	= require 'crypto'
 path	= require 'path'
 lance	= require 'lance'
 cluster = require 'cluster'
+fs		= require 'fs'
 
 {merge, clone} = Object
 {type, empty} = Function
@@ -12,16 +13,20 @@ cluster = require 'cluster'
 defaultCfg = require '../cfg/lirc'
 
 module.exports	=
-lirc			= (newCfg = {}, doConnect = false) ->
+lirc			= (newCfg = {}) ->
 	lirc.cfg = merge clone( defaultCfg ), newCfg
 
 	lirc.session.build lirc.cfg
 
-	if doConnect
-		return lirc.connect()
-
 	if cluster.isWorker
-		lirc.botnet.send.master 'botinfo', [lirc.session.me, lirc.cfg, cluster.worker.id]
+		lirc.botnet.emit.master {
+			cmd: 'botnet.info'
+			args: {
+				name: lirc.session.me
+				cfg	: lirc.cfg
+				id	: cluster.worker.id
+			}
+		}
 
 	return lirc
 
@@ -39,12 +44,12 @@ lirc.error = (type, scope = '', msg...) ->
 	
 	return result
 
-lirc.connect = (newCfg) ->
+lirc.connect = (newCfg, done = ->) ->
 	if not lirc.cfg
 		if type( newCfg ) is 'object'
 			lirc newCfg
 		else
-			return lirc.error 'Error', 'Lirc.connect', 'Lirc not initialized'
+			return done 'Lirc not initialized', null
 
 	{cfg, session} = lirc
 
@@ -53,59 +58,61 @@ lirc.connect = (newCfg) ->
 		lirc.session.conn	=
 		conn				= net.createConnection cfg.server
 
-		conn.setTimeout cfg.timeout
-		conn.setEncoding cfg.encoding
-		conn.setKeepAlive true, cfg.keepAlive
+		conn.on 'connect', () ->
+			conn.connected = true
+			lirc.auth()
 
+		lirc.connect.configure conn
+		lirc.bind lirc.listeners.irc, conn
+
+		done null, conn
 	# secure connection
 	else
-		{port, host} = cfg.server
-
 		keygen = require('ssl-keygen').createKeyGen()
 
-		console.log 'keygen{{'
-		console.log keygen
-		console.log '}}'
+		keygen.createKey 'ssl_key', (err, key) =>
+			keygen.createCert 'ssl_key', (err, cert) =>
 
-		keygen.createKey 'ssl_key', (key) ->
-			console.log 'key', key
-			keygen.createCert 'ssl_key', (cert) ->
-				console.log 'key', cert
-		return 1
-		creds = crypto.createCredentials()
-		console.log 'key', key
-		console.log 'cert', cert
-		console.log 'creds', creds
-		lirc.session.conn	=
-		conn				= tls.connect port, host, creds, () ->
+				key = fs.readFileSync '/home/node/lirc/certs/ssl_key.key', 'utf8'
+				cert = fs.readFileSync '/home/node/lirc/certs/ssl_key.crt', 'utf8'
 
-			console.log 'authorized', conn.authorized
-			console.log 'authorizationError', conn.authorizationError
+				creds = crypto.createCredentials {
+					key: key
+					cert: cert
+				}
 
-			# fix the session variable and config merging for selfSigned etc.
+				lirc.session.conn	=
+				conn				= tls.connect {
+					port: cfg.server.port
+					host: cfg.server.host
+					key: creds.key
+					passphrase: creds.passphrase or null
+					pfx: creds.pfx
+					ca: creds.ca
+					cert: creds.cert
 
-			if not conn.authorized
-				if cfg.server.selfSigned and (
-					conn.authorizationError is 'DEPTH_ZERO_SELF_SIGNED_CERT' or
-					conn.authorizationError is 'UNABLE_TO_VERIFY_LEAF_SIGNATURE'
-				)
+					rejectUnauthorized: false
+				}, () =>
+					if not conn.authorized and not (
+						conn.authorizationError is 'DEPTH_ZERO_SELF_SIGNED_CERT' or
+						conn.authorizationError is 'UNABLE_TO_VERIFY_LEAF_SIGNATURE'
+					)
+						return done 'Connection failed, unauthorized', null
+
 					lirc.auth()
 
-				else if not cfg.server.useExpiredCert and conn.authorizationError is 'CERT_HAS_EXPIRED'
-					throw lirc.error 'Error', 'lirc.connect tls', 'SSL connection failure, CERT_HAS_EXPIRED,', conn.authorizationError
-				else
-					throw lirc.error 'Error', 'lirc.connect tls', 'SSL connection failure', conn.authorizationError
-		
-			lirc.emit 'connect'
+					conn.connected = true
 
-		conn.connected = true
-		conn.setTimeout cfg.timeout
-		conn.setEncoding cfg.encoding
-		conn.setKeepAlive true, cfg.keepAlive
-	
-	lirc.bind lirc.listeners.irc, conn
+					done null, conn
 
-	return conn
+				lirc.connect.configure conn
+				lirc.bind lirc.listeners.irc_secure, conn
+
+
+lirc.connect.configure = (conn) ->
+	conn.setTimeout lirc.cfg.timeout
+	conn.setEncoding lirc.cfg.encoding
+	conn.setKeepAlive true, lirc.cfg.keepAlive
 
 lirc.auth = (user) ->
 	{user} = lirc.session.server if not user
@@ -123,15 +130,14 @@ lirc.auth = (user) ->
 	lirc.send 'NICK', user.nick
 	lirc.send 'USER', userStr
 
-# Extend lirc
-
 lirc.listeners = {
-	irc: require './listeners/irc'
+	irc			: require './listeners/irc'
+	irc_secure	: require './listeners/irc_secure'
 }
 
 lirc.mappings = {
-	parsing			: require './mappings/parsing'
-	actions			: require './mappings/actions'
+	parsing	: require './mappings/parsing'
+	actions	: require './mappings/actions'
 }
 
 # Each module below extends lirc on it own
@@ -142,7 +148,9 @@ require './emitter'
 require './session'
 require './commands'
 require './botnet/botnet'
-require '../web' if cluster.isMaster
+
+if cluster.isMaster
+	lirc.web = require '../web'
 
 module.exports = lirc
 

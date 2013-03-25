@@ -1,8 +1,9 @@
-
+server = require './server'
 module.exports = {
-	server: {
-		host: '127.0.0.1'
-		port: 8765
+	server: server
+	site: {
+		title: ''
+		url: server.url
 	}
 	lactate: {}
 	io: { log: false }

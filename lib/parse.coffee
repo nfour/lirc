@@ -11,7 +11,7 @@ codes	= require './codes'
 rawBuffer		= null
 mappingIndexes	= {}
 
-parse = {
+lirc.parse = {
 	raw: (text = '') ->
 		return text if type( text ) isnt 'string'
 
@@ -29,11 +29,14 @@ parse = {
 		for line in lines
 			msg = lirc.parse.msg line
 
-			parse.mapping 'parsing', msg			# cumulative argument parsing
-			parse.mapping 'actions'	, msg			# pong replies, emits, etc.
+			lirc.parse.mapping 'parsing', msg	# cumulative argument parsing
+			lirc.parse.mapping 'actions', msg	# pong replies, emits, etc.
 
 			lirc.emit 'msg', msg
-			lirc.botnet.send.master 'web.emit::master', ['msg', msg]
+			lirc.botnet.emit.master {
+				cmd	: 'emit.master'
+				args: ['msg', msg]
+			}
 
 		return true
 
@@ -74,7 +77,7 @@ parse = {
 		mapping = lirc.mappings[ name ] or undefined
 
 		if not mapping
-			return lirc.error 'Error', 'lirc.parse', "Mapping '#{ name }' not defined"
+			return console.error "Mapping '#{name}' not defined"
 
 		index = mappingIndexes[ name ]?[ msg.cmd ]
 
@@ -119,6 +122,8 @@ parse = {
 }
 
 lirc.bind = (obj, emitter) ->
+	return emitter if not emitter
+	
 	objType = type( obj )
 
 	if objType is 'object'
@@ -130,7 +135,3 @@ lirc.bind = (obj, emitter) ->
 			emitter.on obj[key][0], obj[key][1]
 
 	return emitter
-
-
-lirc.parse		=
-module.exports	= parse

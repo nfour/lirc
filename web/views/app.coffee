@@ -10,8 +10,8 @@ cfg = {
 	}
 
 	server: { # could also be a url. may be best to do this
-		port: 8765
-		host: 'localhost'
+		port: 1339
+		host: '10.0.0.7'
 	}
 
 	cmdChars: /[\.\+\-]/i
@@ -58,6 +58,10 @@ server = {
 
 	listeners: {
 		msg: (bot, msg) ->
+			console.log 'Recieved data:', arguments
+			if bot not of terminal.botMap
+				return console.error "[WARN] Bot '#{bot}' not in botMap"
+
 			terminal.add bot, 'all', server.prettyMsg msg
 
 			if msg.cmd is 'BOTMSG'
@@ -66,26 +70,36 @@ server = {
 				terminal.add bot, 'irc', server.prettyMsg msg
 
 		data: (bot, data) ->
-			console.log 'Recieved data:', data
+			console.log 'Recieved data:', arguments
+			if bot not of terminal.botMap
+				return console.error "[WARN] Bot '#{bot}' not in botMap"
 
 			terminal.add bot, 'raw_irc', data
 
 		input: (bot, data) ->
-			console.log 'Recieved data:', data
+			console.log 'Recieved data:', arguments
+			if bot not of terminal.botMap
+				return console.error "[WARN] Bot '#{bot}' not in botMap"
 
 			terminal.addInput bot, data
 
 		send: (bot, data) ->
+			if bot not of terminal.botMap
+				return console.error "[WARN] Bot '#{bot}' not in botMap"
+
 			terminal.addInput bot, 'SEND ' + data # need to change addInput to addAll or something
 
 		botmsg: (bot, data) ->
-			console.log 'Recieved data:', data
+			if bot not of terminal.botMap
+				return console.error "[WARN] Bot '#{bot}' not in botMap"
+				
+			console.log 'Recieved data:', arguments
 
 			terminal.add bot, 'botnet', data
 
 		botinfo: (bot, names) ->
+			console.log 'botinfo', names
 			terminal.buildTerminal names
-
 	}
 
 	prettyMsg: (msg) ->
@@ -206,7 +220,7 @@ terminal = {
 			map = {}
 
 			# button
-			if existing = $('.bot-tabs .tab:not([name])')[0] or $(".bot-tabs .tab[name=#{name}]")[0]
+			if existing = $('.bot-tabs .tab:not([name])').first() or $(".bot-tabs .tab[name=#{name}]").first()
 				map.button = $(existing)
 					.attr( 'name', name )
 					.html( name )
@@ -223,7 +237,7 @@ terminal = {
 				terminal.switchBotTab $(this)
 
 			# content
-			if existing = $('.bot-content:not([name])')[0] or $(".bot-content[name=#{name}]")[0]
+			if existing = $('.bot-content:not([name])').first() or $(".bot-content[name=#{name}]").first()
 				map.content = $(existing)
 					.attr( 'name', name )
 			else
@@ -241,6 +255,8 @@ terminal = {
 			map.tabs = terminal.buildTabs name, map.content
 
 			terminal.botMap[name] = map
+
+		console.log terminal.botMap
 
 		terminal.scrollbar.build $('.content')
 
@@ -307,139 +323,8 @@ bind = (listeners, bindee, funcName = 'on') ->
 
 	return bindee
 
+
 error = (str = '') ->
 	console.log 'Error:', str
 	return false
-
-# scrollbar shortcut functions
-
-
-
-
-###
-
-# Tab switching
-for key, tab of tabs
-	tab.selector.click(->
-		self	= $(this)
-		tabName	= self.attr('name')
-
-		return false if self.hasClass('active') or ! tabName of tabs
-
-		selections.tabs.buttons.removeClass('active')
-		selections.tabs.content.removeClass('active')
-
-		self.addClass('active')
-
-		tabs[tabName].content.selector.addClass('active')
-
-		scrollbar.update(selections.content)
-	)
-
-
-format = {
-	msg : (text) ->
-		text = text + '\r\n'
-
-		msg = {
-			text		: text
-			origin		: ''
-			destination	: 'server'
-			command		: ''
-			words		: []
-		}
-
-		words = text.split(' ')
-
-		if ! words[0].match(/^:/)
-			words.unshift(':webClient')
-
-		if words[0].match(/^:/)
-			msg.origin		= words[0].replace(/^:/, '')
-			words			= words[1..]
-
-		msg.command		= words[0] || ''
-		words			= words[1..]
-
-		msg.words = words
-
-		return msg
-}
-
-message = {
-	add : (tabName, text) ->
-		return false if ! tabName of tabs
-
-		tab = tabs[tabName]
-
-		tab.content.lines = content.lines or 0
-		++tab.content.lines
-
-		line = tab.content.lines
-
-		tab.content.selector.append("<li value='#{line}'>#{text}</li>\n")
-
-		scrollbar.update(selections.content)
-		scrollbar.bottom(selections.content)
-
-		return true
-
-	send : (text) ->
-		return false if ! text or typeof text isnt 'string'
-
-		console.log('Sending: ', text)
-
-		server.emit('input', text)
-}
-
-commands = [
-	[
-		/msg/i
-		(msg) ->
-			origin		= msg.origin
-			destination	= msg.words[0]
-			words		= msg.words[1..].join(' ')
-			command		= 'WEB:BOTMSG'
-
-			if destination.match(/^[#&]/)
-				command = 'WEB:PRIVMSG'
-
-			ary = [
-				':' + origin
-				command
-				destination
-				':' + words
-			]
-
-			return ary.join(' ')
-	]
-]
-
-handle = {
-	eventStruct : (msg, eventStruct) ->
-		for args in eventStruct
-			match		= args[0]
-			callback	= args[1]
-
-			if ( match instanceof RegExp and msg.command.match(match) ) or msg.command is match
-				return callback(msg)
-
-		return false
-
-	msg : (data) ->
-		msg		= format.msg(data)
-		text	= handle.eventStruct(msg, commands)
-
-		message.send(text)
-}
-
-
-
-
-###
-
-
-
-
-
 

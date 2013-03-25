@@ -2,10 +2,9 @@
 web = require './web'
 
 {merge, clone} = Object
-{type} = Function
+{type} = Functions
 
-
-parse = {
+web.parse = {
 	input: (text = '') ->
 		return text if type( text ) isnt 'string'
 
@@ -27,7 +26,3 @@ parse = {
 
 		return msg
 }
-
-
-lirc.parse		=
-module.exports	= parse

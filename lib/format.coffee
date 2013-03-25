@@ -3,8 +3,7 @@ lirc = require './lirc'
 
 {type} = Function
 
-
-format = {
+lirc.format = {
 	log: (msg) ->
 		ary = []
 
@@ -48,9 +47,7 @@ format = {
 	}
 }
 
-format.substitute.vars.vars = { # will be added to by each module
+lirc.format.substitute.vars.vars = { # will be added to by each module
 
 }
 
-lirc.format		=
-module.exports	= format

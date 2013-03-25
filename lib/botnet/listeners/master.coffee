@@ -1,56 +1,58 @@
 
 lirc = require '../../lirc'
 
+{botnet, web} = lirc
+
 {type} = Function
 
 # cluster events, emitted to the master
 
 module.exports = {
 	message: (message) ->
-		return false if type( message ) isnt 'object'
+		if type( message ) isnt 'object'
+			return console.error "[WARN] botnet.listeners.master - Non-object vartype #{type( message )}"
 
-		# change this so that there is a "masterOnly" var in obj, which would simplify the below cmds
+		name = message.args[0] or ''
 
-		if message.cmd.match /^([^\.]+.)?emit\b/
-			return false if not message.args
+		switch message.cmd
+			when 'emit'
+				lirc.emit message.args
+				lirc.botnet.emit message
 
-			name = message.args[0] or ''
+			when 'emit.workers'
+				lirc.botnet.emit message
 
-			switch message.cmd
-				when 'emit::master'
-					lirc.emit.apply lirc, message.args
+			when 'emit.master'
+				lirc.emit message.args
 
-				when 'emit'
-					lirc.emit.apply lirc, message.args
+			when 'emit.botnet'
+				botnet.emit.local message.args
+				botnet.emit message
 
-					lirc.botnet.send message
+			when 'emit.botnet.workers'
+				botnet.emit message
 
-				when 'botnet.emit::master'
-					lirc.botnet.emit.apply lirc.botnet, message.args
+			when 'emit.botnet.master'
+				botnet.emit.local message.args
 
-				when 'botnet.emit'
-					lirc.botnet.emit.apply lirc.botnet, message.args
+			when 'emit.web'
+				lirc.web.emit name, message # MAKE CHANGES TO WEB.EMIT()
+				lirc.botnet.emit message
 
-					lirc.botnet.send message
+			when 'emit.web.workers'
+				lirc.botnet.emit message
 
-				when 'web.emit::master'
-					lirc.web.emit name, message
+			when 'emit.web.master'
+				lirc.web.emit name, message
 
-				when 'web.emit'
-					lirc.web.emit name, message
+			when 'relay'
+				lirc.botnet.emit.worker message
 
-					lirc.botnet.send message
+			when 'botnet.info'
+				{id, name, cfg} = message.args
 
-		else
-			switch message.cmd
-				when 'relay'
-					lirc.botnet.send.worker message
-
-				when 'botinfo'
-					id = message.workerId or message.args[2]
-
-					if id of lirc.botnet.bots
-						lirc.botnet.bots[id].name	= message.args[0] or id
-						lirc.botnet.bots[id].cfg		= message.args[1] or {}
+				if id of botnet.bots
+					botnet.bots[id].name	= name or id
+					botnet.bots[id].cfg		= cfg or {}
 
 }
