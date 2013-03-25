@@ -11,46 +11,47 @@ Well, lirc has more to it than other node.js irc client libraries.
 
 ## Examples
 ```coffee
-	lirc = require 'lirc'
+lirc = require 'lirc'
 
-	# set up the bots config
-	lirc {
-		me: 'Botty' # if not specified, will default to server.user.username
-		server: {
-			host: 'irc.freenode.com'
-			port: 7000
-			user: {
-				nick: 'Botty??' # ?? question marks are substituted with random numbers
-				username: 'Botty'
-			}
-
-			secure: false
+# set up the bots config
+lirc {
+	me: 'Botty' # if not specified, will default to server.user.username
+	server: {
+		host: 'irc.freenode.com'
+		port: 7000
+		user: {
+			nick: 'Botty??' # ?? question marks are substituted with random numbers
+			username: 'Botty'
 		}
+
+		secure: false
 	}
+}
 
-	# connect to the topmost network if multiple are specified
-	lirc.connect()
+# connect to the topmost network if multiple are specified
+lirc.connect()
 
-	# will be emitted once rpl_welcome is emitted
-	lirc.on 'connected', () ->
-		lirc.join '#test5000'
+# will be emitted once rpl_welcome is emitted
+lirc.on 'connected', () ->
+	lirc.join '#test5000'
 
-	# emitted for all irc events
-	lirc.on 'raw', (data) ->
-		console.log "[RAW] #{data}"
+# emitted for all irc events
+lirc.on 'raw', (data) ->
+	console.log "[RAW] #{data}"
 
-	# emitted when a privmsg comes from channel #test5000
-	lirc.on '#test5000', (msg) ->
+# emitted when a privmsg comes from channel #test5000
+lirc.on '#test5000', (msg) ->
 
-	# emitted when you get a message from a user
-	lirc.on 'usermsg', (msg) ->
+# emitted when you get a message from a user
+lirc.on 'usermsg', (msg) ->
 
-	# emitted on irc event rpl_welcome
-	lirc.on 'rpl_welcome', (msg) ->
+# emitted on irc event rpl_welcome
+lirc.on 'rpl_welcome', (msg) ->
 
-	# emitted manually be another bot, captured here
-	lirc.botnet.on 'hello', (from) ->
-		console.log '#{from} says hello.'
+# emitted manually by another bot, captured here
+lirc.botnet.on 'hello', (msg) ->
+	lirc.botnet.emit.to msg.from, 'hello.reply', 'yo' # psuedo code, api not finalized
+
 ```
 
 All event names are case-insensitive.
