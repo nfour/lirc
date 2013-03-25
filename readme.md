@@ -2,12 +2,12 @@
 lirc is an IRC client, for bots.
 
 ## Why use lirc?
-lirc has more to it than other node.js irc client libraries.
+Well, lirc has more to it than other node.js irc client libraries.
 
 - Built-in **botnet** functionality via the cluster module
-- Instead of telnet, use a **web interface**, accessable anywhere, to manage and view bots
+- Instead of telnet we use a **web interface**, accessable anywhere, to manage and view bots
 - Extendable via mappings and event minipulation
-- Automatically join SSL networks without manually managing certificates
+- Automatically join secure irc networks without manually managing certificates
 
 ## Examples
 ```coffee
@@ -56,7 +56,7 @@ lirc has more to it than other node.js irc client libraries.
 All event names are case-insensitive.
 
 ## Web interface
-screenshot_here
+screenshot_to_be_taken_and_put_here
 
 ## State of development
 A few features are not stable, incomplete or non-existant.
@@ -71,6 +71,7 @@ A few features are not stable, incomplete or non-existant.
 - Optimizations to web interface necessary. Merging of static assets etc.
 
 lirc is built on top of Lance, a minimal framework. Hence the name, Lance-irc.
+Lance should be avaliable on npm when this is stable.
 
 ## Thanks
-Feel free to use any code for your own projects or contribute to this repo. If I have screwed up then feel free to point it out.
+Feel free to use any code for your own projects or contribute to this repo.
