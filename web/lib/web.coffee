@@ -26,10 +26,11 @@ web = (newCfg = {}) ->
 		console.log '[WEB] New user'
 
 		web.clients.push socket # todo: remove from client list on disconnect or timeout
-		console.log lirc.botnet.bots
-		web.emit 0, ['botinfo', web.getBotNames()]
 
-		socket.emit 'input', ' - Connected' # change this to event "sys" or something
+		web.emit {
+			args: ['botinfo', [web.getBotNames()]]
+		}
+
 		lirc.bind web.listeners.input, socket
 
 	lirc.bind web.listeners.web, web

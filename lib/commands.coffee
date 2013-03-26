@@ -1,8 +1,11 @@
 
-lirc = require './lirc'
+lirc	= require './lirc'
+cluster	= require 'cluster'
 
 {merge, clone} = Object
 {type, empty} = Function
+
+
 
 lirc.send = () ->
 	if not lirc.session.conn
@@ -15,8 +18,8 @@ lirc.send = () ->
 
 	lirc.session.conn.write str
 	lirc.botnet.emit.master {
-		cmd	: 'emit.master'
-		args: ['send', str]
+		cmd	: 'emit.web'
+		args: ['send', [str]]
 	}
 
 	console.log '[SEND]', str

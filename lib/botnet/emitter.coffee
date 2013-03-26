@@ -61,12 +61,15 @@ botnet.emit.parseArgs = (args) ->
 	args = Array::slice.call args
 
 	if type( args[0] ) is 'object'
+		if not args[0].workerId
+			args[0].workerId = cluster.worker?.id or 0
+
 		return args[0]
 
 	return {
 		cmd			: 'emit.botnet'
 		args		: args[0..]
-		workerId	: cluster.worker?.id
+		workerId	: cluster.worker?.id or 0
 	}
 
 botnet.emitter._events = {}

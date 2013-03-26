@@ -151,6 +151,22 @@ require './botnet/botnet'
 
 if cluster.isMaster
 	lirc.web = require '../web'
+else
+	# set up some worker relaying
+	workerId = cluster.worker.id
+
+	lirc.on 'raw', (data) ->
+		lirc.botnet.emit.master {
+			cmd	: 'emit.web'
+			args: ['raw', [data]]
+		}
+
+	lirc.on 'msg', (msg) ->
+		lirc.botnet.emit.master {
+			cmd	: 'emit.web'
+			args: ['msg', [msg]]
+		}
+
 
 module.exports = lirc
 

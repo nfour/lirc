@@ -33,10 +33,6 @@ lirc.parse = {
 			lirc.parse.mapping 'actions', msg	# pong replies, emits, etc.
 
 			lirc.emit 'msg', msg
-			lirc.botnet.emit.master {
-				cmd	: 'emit.master'
-				args: ['msg', msg]
-			}
 
 		return true
 

@@ -1,8 +1,7 @@
 
 # requires jquery >= 1.7.0
 
-$html	=
-$$		= undefined
+$html = undefined
 
 cfg = {
 	scrollbar: {
@@ -20,22 +19,6 @@ cfg = {
 
 $(document).ready ->
 	# create selectors
-	$$ = {
-		terminal		: $('.terminal')
-		terminal_caret	: $('.terminal .caret')
-		terminal_input	: $('.terminal .input input')
-
-		tabs		: $('.terminal-tabs')
-		tab_buttons	: $('.terminal-tabs .tab')
-		tab_contents: $('.content .tab-content')
-
-		bot_tabs		: $('.bot-tabs')
-		bot_tab_buttons	: $('.bot-tabs .tab')
-		bot_tab_contents: $('.bot-content')
-
-		content: $('.content')
-	}
-
 	$html = {
 		terminal	: $('.terminal-outer')
 		tab			: $('.terminal-tabs > .tab')
@@ -58,9 +41,7 @@ server = {
 
 	listeners: {
 		msg: (bot, msg) ->
-			console.log 'Recieved data:', arguments
-			if bot not of terminal.botMap
-				return console.error "[WARN] Bot '#{bot}' not in botMap"
+			return false if not server.checkInput arguments
 
 			terminal.add bot, 'all', server.prettyMsg msg
 
@@ -70,35 +51,28 @@ server = {
 				terminal.add bot, 'irc', server.prettyMsg msg
 
 		data: (bot, data) ->
-			console.log 'Recieved data:', arguments
-			if bot not of terminal.botMap
-				return console.error "[WARN] Bot '#{bot}' not in botMap"
+			return false if not server.checkInput arguments
 
 			terminal.add bot, 'raw_irc', data
 
 		input: (bot, data) ->
-			console.log 'Recieved data:', arguments
-			if bot not of terminal.botMap
-				return console.error "[WARN] Bot '#{bot}' not in botMap"
+			return false if not server.checkInput arguments
 
 			terminal.addInput bot, data
 
 		send: (bot, data) ->
-			if bot not of terminal.botMap
-				return console.error "[WARN] Bot '#{bot}' not in botMap"
+			return false if not server.checkInput arguments
 
 			terminal.addInput bot, 'SEND ' + data # need to change addInput to addAll or something
 
 		botmsg: (bot, data) ->
-			if bot not of terminal.botMap
-				return console.error "[WARN] Bot '#{bot}' not in botMap"
-				
+			return false if not server.checkInput arguments
+
 			console.log 'Recieved data:', arguments
 
 			terminal.add bot, 'botnet', data
 
 		botinfo: (bot, names) ->
-			console.log 'botinfo', names
 			terminal.buildTerminal names
 	}
 
@@ -118,6 +92,12 @@ server = {
 		result = result.replace /\ /g, '&nbsp;'
 
 		return result
+
+	checkInput: (args) ->
+		if args[0] not of terminal.botMap
+			return console.error "[WARN] '#{args[0}' not in botMap"
+
+		return true
 }
 
 terminal = {
@@ -220,7 +200,7 @@ terminal = {
 			map = {}
 
 			# button
-			if existing = $('.bot-tabs .tab:not([name])').first() or $(".bot-tabs .tab[name=#{name}]").first()
+			if existing = $('.bot-tabs .tab:not([name])')[0] or $(".bot-tabs .tab[name=#{name}]")[0]
 				map.button = $(existing)
 					.attr( 'name', name )
 					.html( name )
@@ -237,7 +217,7 @@ terminal = {
 				terminal.switchBotTab $(this)
 
 			# content
-			if existing = $('.bot-content:not([name])').first() or $(".bot-content[name=#{name}]").first()
+			if existing = $('.bot-content:not([name])')[0] or $(".bot-content[name=#{name}]")[0]
 				map.content = $(existing)
 					.attr( 'name', name )
 			else

@@ -10,20 +10,12 @@ lirc = require '../../lirc'
 module.exports = {
 	message: (message) ->
 		if type( message ) isnt 'object'
-			return console.error "[WARN] botnet.listeners.master - Non-object vartype #{type( message )}"
+			return lance.error 'warn', "botnet.listeners.master - Non-object vartype #{type( message )}"
 
-		name = message.args[0] or ''
-
+		# ordered from percieved most frequent, descending
 		switch message.cmd
-			when 'emit'
-				lirc.emit message.args
-				lirc.botnet.emit message
-
-			when 'emit.workers'
-				lirc.botnet.emit message
-
-			when 'emit.master'
-				lirc.emit message.args
+			when 'emit.web'
+				lirc.web.emit message
 
 			when 'emit.botnet'
 				botnet.emit.local message.args
@@ -35,15 +27,15 @@ module.exports = {
 			when 'emit.botnet.master'
 				botnet.emit.local message.args
 
-			when 'emit.web'
-				lirc.web.emit name, message # MAKE CHANGES TO WEB.EMIT()
+			when 'emit'
+				lirc.emit message.args
 				lirc.botnet.emit message
 
-			when 'emit.web.workers'
+			when 'emit.workers'
 				lirc.botnet.emit message
 
-			when 'emit.web.master'
-				lirc.web.emit name, message
+			when 'emit.master'
+				lirc.emit message.args
 
 			when 'relay'
 				lirc.botnet.emit.worker message

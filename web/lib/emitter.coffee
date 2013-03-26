@@ -18,13 +18,12 @@ web.on = () ->
 	else
 		web.emitter.on.apply web.emitter, arguments
 
-web.emit = (workerId, args) ->
+web.emit = (message) ->
 	if not web.io?.sockets?
 		return lance.error 'warn', "web.emit(), web.io.sockets undefined, can't send"
 
-	args = web.emit.parseArgs workerId, args
-
-	web.emit.io args
+	if args = web.emit.parseArgs message
+		web.io.sockets.emit.apply web.io.sockets, args
 
 web.emit.local = () ->
 	args = Array::slice.call arguments
@@ -39,21 +38,17 @@ web.emit.local = () ->
 
 	web.emitter.emit.apply web.emitter, args
 
-web.emit.io = (args = []) ->
-	web.io.sockets.emit.apply web.io.sockets, args
+# expecting message from proccess.send()
+# { cmd: '', workerId: 0, args: [] }
+web.emit.parseArgs = (message) ->
+	eventName	= message.args[0]
+	args		= message.args[1]
 
-web.emit.parseArgs = (workerId = 0, args = []) ->
-	botName = workerId
+	botName	= lirc.botnet.bots[ message.workerId or 0 ]?.name or ''
 
-	if lirc.botnet.bots[ workerId ]?.name?
-		botName	= lirc.botnet.bots[ workerId ].name
+	if not eventName
+		return false
 
-	eventName	= args[0] or null
-	args		= if 1 of args then args[1..] else []
-
-	if not eventName or not botName?
-		return false 
-
-	return [eventName, botName].concat args
+	return [eventName, botName].concat args or []
 
 web.emitter._events = {}

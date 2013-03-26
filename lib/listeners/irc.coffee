@@ -5,12 +5,6 @@ cluster = require 'cluster'
 module.exports = {
 	data: (data) ->
 		lirc.emit 'raw', data
-
-		lirc.botnet.emit.master {
-			cmd: 'emit.master'
-			args: ['raw', data]
-		}
-
 		lirc.parse.raw data
 
 	connect: () ->
