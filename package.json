@@ -7,7 +7,7 @@
 		"lance"			: ">= 0.7.x",
 		"coffee-script"	: ">= 1.5.x",
 		"ssl-keygen"	: ">= 0.1.1",
-		"socket.io"		: ">= 9.x.x"
+		"socket.io"		: ">= 0.9.x"
 	},
 	"repository" : {
 		"type" : "git",
