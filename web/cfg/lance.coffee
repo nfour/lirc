@@ -7,7 +7,6 @@ module.exports = {
 
 	templating: {
 		ect: {
-			engine	: require 'ect'
 			ext		: '.ect'
 			findIn	: 'views'
 			minify	: false
