@@ -1,13 +1,13 @@
 {
 	"name"			: "lirc",
-	"version"		: "0.3.2",
+	"version"		: "0.3.3",
 	"main"			: "./index",
 	"description"	: "A better IRC client for node",
 	"dependencies": {
 		"lance"			: ">= 0.7.x",
-		"coffee-script"	: ">= 1.6.x",
+		"coffee-script"	: ">= 1.5.x",
 		"ssl-keygen"	: ">= 0.1.1",
-		"socket.io"		: ">= *"
+		"socket.io"		: ">= 9.x.x"
 	},
 	"repository" : {
 		"type" : "git",
