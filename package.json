@@ -1,10 +1,11 @@
 {
 	"name"			: "lirc",
-	"version"		: "0.3.3",
+	"version"		: "0.3.6",
 	"main"			: "./index",
 	"description"	: "A better IRC client for node",
 	"dependencies": {
 		"lance"			: ">= 0.7.x",
+		"lactate"		: ">= 0.13.11",
 		"coffee-script"	: ">= 1.5.x",
 		"ssl-keygen"	: ">= 0.1.1",
 		"socket.io"		: ">= 0.9.x"
