@@ -5,9 +5,9 @@
 	"description"	: "A better IRC client for node",
 	"dependencies": {
 		"lance"			: ">= 0.7.x",
-		"coffeescript"	: ">= 1.6.x",
+		"coffee-script"	: ">= 1.6.x",
 		"ssl-keygen"	: ">= 0.1.1",
-		"socket.io"		: ">= 1.0.0"
+		"socket.io"		: ">= *"
 	},
 	"repository" : {
 		"type" : "git",
