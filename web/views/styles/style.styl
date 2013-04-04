@@ -41,57 +41,57 @@ body
 	font-size: 14px
 	font-family: arial
 
-	color: #ccc
+	color: #cecece
 
 	background-color: $bg_body
 
-.header,
-.footer
-	padding: 5px
-	margin-left: 10px
-	margin-right: 10px
+.table
+	display: table
 
-.header
-	margin-top: 6px
-	margin-left: 13px
+	> .row
+		display: table-row
+		
+.row > .cell
+	display: table-cell
 
-	h1
-		margin: 0
-		padding: 0
-		line-height: 0
+.core
+	padding-top: 6px
 
-		a
-			display: inline-block
-			padding: 0 2px
+.logo
+	margin: 0
+	padding: 8px 0 0 24px
+	line-height: 0
 
-			border-bottom: 2px solid #69A956cc
+	a
+		display: inline-block
+		padding: 0 2px
 
-			line-height: 19px
-			font-size: 22px
-			font-family: arial
-			font-style: italic
+		border-bottom: 2px solid #69A956cc
 
-			text-shadow: 0 1px 4px #000a
+		line-height: 19px
+		font-size: 22px
+		font-family: arial
+		font-style: italic
 
-			color: #8D8D8D
-			text-shadow: 0 2px 0 #000
+		text-shadow: 0 1px 4px #000a
 
-			opacity: 0.8
+		color: #8D8D8D
+		text-shadow: 0 2px 0 #000
 
+		opacity: 0.8
 
-			.lower-case
-				font-size: 15px
-				text-transform: uppercase
+		.lower-case
+			font-size: 15px
+			text-transform: uppercase
 
-			.name-irc
-				font-family: tahoma
-				font-style: normal
+		.name-irc
+			font-family: tahoma
+			font-style: normal
 
-				color: #69A956
-				text-shadow: 0 2px 0 #000, 0 0 50px #85DA12cc
-			&:hover
-				opacity: 1
-
+			color: #69A956
+			text-shadow: 0 2px 0 #000, 0 0 50px #85DA12cc
+		&:hover
+			opacity: 1
 
 .terminal-outer
 	min-width: 512px
@@ -159,7 +159,6 @@ body
 				margin-left: 0px
 				margin-right: 3px
 
-
 		display: inline-block
 
 		font-size: 14px
@@ -179,6 +178,9 @@ body
 
 		box-shadow: 1px 0 0 0 #0003, -1px 0 0 0 #0003, 0 -1px 0 0 #0006, 0 -2px 3px 0 #0002
 		cursor: default
+
+		small
+			text-shadow: 0 1px 0 #4c4c4ccc, 0 0 1px #7775
 
 		&:hover:not(.active):not(:active)
 			background-color: #36402B
@@ -207,11 +209,59 @@ body
 
 			box-shadow: 0 -1px 0 0 #333c
 
+			&, small
+				text-shadow: 0
+
 .tab-content, .bot-content
 	display: none
 
 	&.active
 		display: block
+
+.tab-content
+	width: 100%
+
+	a
+		color: #8FA1AB
+
+		&:hover
+			color: #7DCC7E
+
+	&.active
+		display: table
+
+	.cell
+		padding: 1px 5px 1px 8px
+		border-right: 2px solid #202020
+
+		&:last-child
+			border-right: 0
+
+	.col2,
+	.col1
+		width: 1px
+		white-space: nowrap
+
+	.col2
+		color: #6f6f6f
+
+		&.lirc
+			color: #89C597
+
+		&.chanmsg
+			color: #ADAD71
+		
+		&.botnet
+			color: #85AB52
+
+		&.notice
+			color: #A06E62
+
+		&.send
+			color: #6F87B3
+
+		&.usermsg
+			color: #63AE99
 
 .terminal
 	border: 1px solid #090909
@@ -281,6 +331,40 @@ body
 			&.active
 				opacity: 1
 
+.commands
+	width: 100%
+
+	.cell
+		width: 33%
+		border-right: 2px solid #333
+		padding: 0 14px
+
+		&:last-child
+			border-right: 0
+
+.footer
+	margin-top: 16px
+	margin-bottom: 20px
+	padding: 14px 0px
+	margin-left: 10px
+	margin-right: 10px
+
+	min-height: 80px
+
+	background-color: $bg_body - 5
+
+	border-top: 1px solid #1114
+	border-bottom: 1px solid #1113
+	border-radius: 8px
+
+	color: #666
+	font-family: monospace
+	font-weight: bold
+	text-shadow: 0 1px 0 #0a0a0a
+
+	h2
+		padding-left: 15px
+
 // Scrollbar
 
 .mCSB_container
@@ -324,25 +408,4 @@ body
 	border-radius: 10px
 
 	box-shadow: 0 0 0 1px #0005
-
-// End of Scrollbar
-
-.footer
-	margin-top: 20px
-	margin-bottom: 20px
-	padding: 22px 15px
-
-	min-height: 80px
-
-	background-color: $bg_body - 5
-
-	border-top: 1px solid #1114
-	border-bottom: 1px solid #1113
-	border-radius: 8px
-
-	color: #666
-	font-family: monospace
-	font-weight: bold
-	text-shadow: 0 1px 0 #0a0a0a
-
 

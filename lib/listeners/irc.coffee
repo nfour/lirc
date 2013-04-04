@@ -1,6 +1,6 @@
 
-lirc = require '../lirc'
-cluster = require 'cluster'
+lirc	= require '../lirc'
+cluster	= require 'cluster'
 
 module.exports = {
 	data: (data) ->

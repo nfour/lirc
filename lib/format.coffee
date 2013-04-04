@@ -1,5 +1,5 @@
 
-lirc = require './lirc'
+lirc		= require './lirc'
 
 {type} = Function
 
@@ -26,6 +26,9 @@ lirc.format = {
 		nick = lirc.format.substitute.randomNumbers nick, /[#?]/g
 
 		return nick
+
+	stripColors: (str) ->
+		return str.replace /[\x02\x1f\x16\x0f]|\x03\d{0,2}(?:,\d{0,2})?/g, ''
 
 	substitute: {
 		vars: (text) ->

@@ -34,6 +34,8 @@ $(document).ready ->
 	# bind listeners to the server
 	bind server.listeners, conn
 
+	terminal.input.send '.buffer'
+
 # scope variables
 
 server = {
@@ -43,62 +45,140 @@ server = {
 		msg: (bot, msg) ->
 			return false if not server.checkInput arguments
 
-			terminal.add bot, 'all', server.prettyMsg msg
+			return false if not args = parseMsg msg
 
-			if msg.cmd is 'BOTMSG'
-				terminal.add bot, 'botnet', server.prettyMsg msg
+			if args.important
+				terminal.add bot, ['all', 'irc', 'irc_verbose'], args
 			else
-				terminal.add bot, 'irc', server.prettyMsg msg
+				terminal.add bot, 'irc_verbose', args
 
-		data: (bot, data) ->
-			return false if not server.checkInput arguments
+			args.col3 = msg.raw
 
-			terminal.add bot, 'raw_irc', data
+			terminal.add bot, 'irc_raw', args
 
-		input: (bot, data) ->
-			return false if not server.checkInput arguments
+		botnet: (bot, obj, fromBot = bot) ->
+			console.log arguments
+			msg = {
+				cmd: fromBot
+				text: "#{obj.cmd}: #{obj.args.join ' '}"
+				time: obj.time
+			}
 
-			terminal.addInput bot, data
+			return false if not args = parseMsg msg, { nbsp: false }
 
-		send: (bot, data) ->
-			return false if not server.checkInput arguments
+			args.col2Class = 'botnet'
 
-			terminal.addInput bot, 'SEND ' + data # need to change addInput to addAll or something
+			terminal.add bot, ['all', 'botnet'], args
 
-		botmsg: (bot, data) ->
-			return false if not server.checkInput arguments
+		lirc: (obj) ->
+			msg = {
+				cmd: "Lirc"
+				text: obj.text
+				time: obj.time
+			}
 
-			console.log 'Recieved data:', arguments
+			return false if not args = parseMsg msg
 
-			terminal.add bot, 'botnet', data
+			args.col2Class = 'lirc'
 
-		botinfo: (bot, names) ->
+			terminal.addAll '*', args
+
+		botinfo: (names) ->
 			terminal.buildTerminal names
+
+		buffer: (buffer) ->
+			console.log 'Injecting buffer...'
+
+			for args in buffer
+				eventName = args[0]
+
+				switch eventName
+					when 'buffer', 'botinfo', 'input'
+						continue
+
+				if eventName of server.listeners
+					server.listeners[ eventName ].apply server.listeners, args[1..]
 	}
-
-	prettyMsg: (msg) ->
-		ary = []
-
-		ary.push "[ #{msg.cmd} ]"
-
-		for key, val of msg
-			if key.match /^(raw|words|cmd|remains|origin)$/ then continue
-			if key is 'target22'
-				continue if not val or val is lirc.session.server.user.nick
-			ary.push "#{key}=\"#{val}\""
-
-		result = ary.join ', '
-
-		result = result.replace /\ /g, '&nbsp;'
-
-		return result
 
 	checkInput: (args) ->
 		if args[0] not of terminal.botMap
-			return console.error "[WARN] '#{args[0}' not in botMap"
+			console.log args
+			return console.error "[WARN] '#{args[0]}' not in botMap"
 
 		return true
 }
+
+parseMsg = (msg, opt = { nbsp: true }) ->
+	r = {
+		col1: ''
+		col2: msg.cmd or ''
+		col3: ''
+	}
+
+	msg.text	?= ''
+	msg.raw		?= msg.text
+
+	return false if not msg.text
+
+	if opt.nbsp
+		msg.raw		= msg.raw.replace /\ /g, '&nbsp;' if msg.raw
+		msg.text	= msg.text.replace /\ /g, '&nbsp;' if msg.text
+
+	r.col3 = msg.text
+
+	[time, r.col1] = parseMsg.time new Date( msg.time or null )
+
+	r.col1Data = time.getTime()
+
+	if msg.cmd.match ///^(
+		PRIVMSG|NOTICE|JOIN|PART|SEND|QUIT
+	)$///i
+		r.important = true
+		r.col2Class = msg.cmd.toLowerCase()
+
+		if msg.cmd is 'PRIVMSG'
+			if msg.target.match /^[\#\&]/
+				r.col2Class	= 'chanmsg'
+				r.col2		= msg.target or msg.cmd
+				r.col3		= "&lt;#{msg.mask.nick}&gt; #{r.col3}"
+			else
+				r.col2Class = 'usermsg'
+				r.col2		= msg.target or msg.cmd
+				r.col3		= "&lt;#{msg.mask.nick}&gt; #{r.col3}"
+
+		if msg.cmd is 'SEND' and msg.text.match /^PONG/
+			r.important = false
+
+		if msg.cmd is 'JOIN'
+			r.col3 = "#{msg.mask.nick} joined #{msg.chan}"
+			r.important = false
+
+		if msg.cmd is 'PART'
+			r.col3 = "#{msg.mask.nick} left #{msg.chan}"
+			r.important = false
+
+		if msg.cmd is 'QUIT'
+			r.col3 = "#{msg.mask.raw} quit"
+			r.important = false
+
+	if r.col2.length > 11
+		r.col2Title	= r.col2
+		r.col2		= "#{r.col2[0..8]}..."
+
+	return r
+
+parseMsg.time = (time = new Date()) ->
+	seconds	= time.getSeconds()
+	hours	= time.getHours()
+	mins	= time.getMinutes()
+
+	if seconds < 10		then seconds	= '0' + seconds
+	if hours < 10		then hours		= '0' + hours
+	if mins < 10		then mins		= '0' + mins
+
+	ms = time.getTime()
+
+	return [time, "#{hours}:#{mins}.#{seconds}"]
 
 terminal = {
 	input: {
@@ -148,29 +228,38 @@ terminal = {
 
 	}
 
-	add: (bot, tabName, text = '') ->
-		return false if tabName not of terminal.botMap[bot].tabs
+	add: (bot, tabs, args) ->
+		if typeof tabs is 'string'
+			if tabs is '*'
+				tabs = []
+				for key of @botMap
+					for tabName of @botMap[key].tabs
+						tabs.push tabName
+					break
+			else
+				tabs = [tabs]
 
-		tab = terminal.botMap[bot].tabs[tabName]
+		for tabName in tabs
+			continue if tabName not of @botMap[bot]?.tabs
 
-		now = new Date()
-		nowFormatted = now.getMonth() + '.' + now.getDate() + ' ' + now.getHours() + ':' + now.getMinutes()
-		timestamp = "<span class='timestamp' data='#{ now.getTime() }'>#{ nowFormatted }</span>"
+			tab = @botMap[bot].tabs[tabName]
 
-		tab.content.append "<li value='#{ tab.lines }'>#{ timestamp + text }</li>\n"
-		++tab.lines
+			tab.content.append """
+				<div class='row'>
+					<div class='cell col1 #{args.col1Class or ''}' data='#{args.col1Data or ''}'>#{args.col1}</div>
+					<div class='cell col2 #{args.col2Class or ''}' title='#{args.col2Title or ''}'>#{args.col2}</div>
+					<div class='cell col3 #{args.col3Class or ''}'>#{args.col3}</div>
+				</div>\n
+			"""
+			++tab.lines
 
-		if tab.content.hasClass 'active'
-			terminal.scrollbar.update bot
-			terminal.scrollbar.scroll bot, 'bottom'
+			if tab.content.hasClass 'active'
+				terminal.scrollbar.update bot
+				terminal.scrollbar.scroll bot, 'bottom'
 
-	addInput: (bot, text = '') ->
-		identifier = "<span class=\"caret\">&gt;&gt;</span>"
-
-		for tabName of terminal.botMap[bot].tabs
-			terminal.add bot, tabName, identifier + text
-
-		return true
+	addAll: (tabs, args) ->
+		for bot of @botMap
+			@add bot, tabs, args
 
 	botMap: {}
 
@@ -236,8 +325,6 @@ terminal = {
 
 			terminal.botMap[name] = map
 
-		console.log terminal.botMap
-
 		terminal.scrollbar.build $('.content')
 
 		bind terminal.input.listeners, $('.terminal .input input')
@@ -262,7 +349,6 @@ terminal = {
 
 	switchTab: (bot, selector) -> # MAKE THIS WORK ############ then make add() etc work
 		name = selector.attr 'name'
-		console.log 'name', name
 		return false if selector.hasClass('active') or not name
 
 		tab			= terminal.botMap[bot].tabs[name]
@@ -303,8 +389,4 @@ bind = (listeners, bindee, funcName = 'on') ->
 
 	return bindee
 
-
-error = (str = '') ->
-	console.log 'Error:', str
-	return false
 

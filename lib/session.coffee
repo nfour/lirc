@@ -48,6 +48,8 @@ session.build = (cfg) ->
 	session.server.user	= user
 	session.me			= cfg.me or user.username
 
+	if cfg.localAddress
+		session.server.localAddress = cfg.localAddress
 
 	session.built = true
 

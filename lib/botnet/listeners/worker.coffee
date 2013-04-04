@@ -19,7 +19,7 @@ module.exports = {
 				lirc.emit message.args
 
 			when 'emit.botnet'
-				botnet.emit.local message.args
+				botnet.emit.local message.args[0], message
 
 			when 'botnet.info.get'
 				botnet.emit.master {
@@ -30,4 +30,9 @@ module.exports = {
 						id	: cluster.worker.id
 					}
 				}
+
+	exit: (worker) ->
+		console.log 'worker exits, with suicide: ' + worker.suicide
+		if not worker.suicide and worker.name
+			lirc.botnet.spawn worker.name
 }

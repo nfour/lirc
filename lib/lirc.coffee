@@ -28,6 +28,16 @@ lirc			= (newCfg = {}) ->
 			}
 		}
 
+	if lirc.cfg.ascii and cluster.isMaster
+		console.log """
+		\       __          
+		\      / /__________
+		\     / / / ___/___/
+		\    / / / / / /__  
+		\   /_/_/_/  \\___/  
+		\                   
+		"""
+
 	return lirc
 
 lirc.cfg = null
@@ -90,6 +100,7 @@ lirc.connect = (newCfg, done = ->) ->
 					pfx: creds.pfx
 					ca: creds.ca
 					cert: creds.cert
+					localAddress: cfg.server.localAddress
 
 					rejectUnauthorized: false
 				}, () =>
@@ -106,8 +117,7 @@ lirc.connect = (newCfg, done = ->) ->
 					done null, conn
 
 				lirc.connect.configure conn
-				lirc.bind lirc.listeners.irc_secure, conn
-
+				lirc.bind lirc.listeners.irc, conn
 
 lirc.connect.configure = (conn) ->
 	conn.setTimeout lirc.cfg.timeout
@@ -130,9 +140,10 @@ lirc.auth = (user) ->
 	lirc.send 'NICK', user.nick
 	lirc.send 'USER', userStr
 
+lirc.codes = require './format_codes'
+
 lirc.listeners = {
-	irc			: require './listeners/irc'
-	irc_secure	: require './listeners/irc_secure'
+	irc: require './listeners/irc'
 }
 
 lirc.mappings = {
@@ -141,7 +152,6 @@ lirc.mappings = {
 }
 
 # Each module below extends lirc on it own
-
 require './format'
 require './parse'
 require './emitter'
@@ -151,15 +161,25 @@ require './botnet/botnet'
 
 if cluster.isMaster
 	lirc.web = require '../web'
+
+	cluster.on 'disconnect', (worker) ->
+		console.error "Worker [ #{worker.id} ] died"
+
 else
 	# set up some worker relaying
 	workerId = cluster.worker.id
 
-	lirc.on 'raw', (data) ->
+	process.on 'uncaughtException', (err) ->
 		lirc.botnet.emit.master {
 			cmd	: 'emit.web'
-			args: ['raw', [data]]
+			args: ['lirc', [{
+				text: 'Uncaught Error: ' + err
+				time: new Date().getTime()
+			}]]
+			fromWorkerId: workerId
 		}
+
+		cluster.worker.disconnect()
 
 	lirc.on 'msg', (msg) ->
 		lirc.botnet.emit.master {
@@ -167,6 +187,18 @@ else
 			args: ['msg', [msg]]
 		}
 
+	lirc.botnet.on '*', (args = []) ->
+		message = args[1]
+
+		lirc.botnet.emit.master {
+			cmd	: 'emit.web'
+			args: ['botnet', {
+				cmd: massage.args[0]
+				args: if massage.args[1] then massage.args[1..] else []
+				time: new Date().getTime()
+			}]
+			fromWorkerId: message.workerId
+		}
 
 module.exports = lirc
 

@@ -21,9 +21,9 @@ botnet.on = ->
 		botnet.emitter.on.apply lirc.botnet.emitter, args
 
 botnet.emit = ->
+	obj = botnet.emit.parseArgs arguments
+
 	if cluster.isMaster
-		obj = botnet.emit.parseArgs arguments
-		
 		for key, worker of botnet.bots
 			workerId = 0
 			if obj.workerId? then workerId = obj.workerId.toString()
@@ -39,6 +39,7 @@ botnet.emit.local = ->
 	if type( args[0] ) is 'array' and args.length is 1
 		args = args[0]
 
+	args[0] = args[0] or '*'
 	args[0] = args[0].toLowerCase()
 
 	if args[0] isnt '*'
@@ -47,7 +48,7 @@ botnet.emit.local = ->
 	botnet.emitter.emit.apply botnet.emitter, args
 
 botnet.emit.master = () ->
-	if not 'send' of process
+	if 'send' not of process
 		return lirc.error 'warn', "botnet.send.master(), can't use process.send()"
 
 	obj = botnet.emit.parseArgs arguments
@@ -68,7 +69,7 @@ botnet.emit.parseArgs = (args) ->
 
 	return {
 		cmd			: 'emit.botnet'
-		args		: args[0..]
+		args		: args
 		workerId	: cluster.worker?.id or 0
 	}
 

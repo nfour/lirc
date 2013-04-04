@@ -1,5 +1,6 @@
 
 module.exports = {
+	ascii: true
 	user: {
 		nick: 'lircer???'
 	}

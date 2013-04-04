@@ -1,0 +1,16 @@
+{
+	"name"			: "lirc",
+	"version"		: "0.3.0",
+	"main"			: "./index",
+	"description"	: "A better IRC client for node",
+	"dependencies": {
+		"lance"			: ">= 0.1.x",
+		"coffee-script"	: ">= 1.6.2",
+		"ssl-keygen"	: ">= 0.1.1",
+		"socket.io"		: ">= 1.0.0"
+	},
+	"repository" : {
+		"type" : "git",
+		"url" : "http://github.com/nfour/lirc"
+	}
+}

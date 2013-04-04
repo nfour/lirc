@@ -18,12 +18,39 @@ web.on = () ->
 	else
 		web.emitter.on.apply web.emitter, arguments
 
-web.emit = (message) ->
+web.emit = () ->
 	if not web.io?.sockets?
-		return lance.error 'warn', "web.emit(), web.io.sockets undefined, can't send"
+		return lirc.error 'warn', "web.emit(), web.io.sockets undefined, can't send"
 
-	if args = web.emit.parseArgs message
+	if args = web.emit.parseArgs arguments
 		web.io.sockets.emit.apply web.io.sockets, args
+
+		if args[0] isnt 'buffer'
+			web.buffer.add args
+
+# expecting message from proccess.send()
+# { cmd: '', workerId: 0, args: [] }
+web.emit.parseArgs = (args) ->
+	if args[0] and typeof args[0] is 'string'
+		args = Array::slice.call args
+		return args
+	else
+		message		= args[0]
+		eventName	= message.args[0]
+
+		args = []
+		args = args.concat message.args[1]
+
+		botName	= lirc.botnet.bots[ message.workerId or 0 ]?.name or ''
+
+		if message.fromWorkerId
+			fromBotName = lirc.botnet.bots[ message.fromWorkerId or 0 ]?.name or ''
+			args.push fromBotName
+
+		if not eventName
+			return false
+
+		return [eventName, botName].concat args
 
 web.emit.local = () ->
 	args = Array::slice.call arguments
@@ -34,21 +61,8 @@ web.emit.local = () ->
 	args[0] = args[0].toLowerCase()
 
 	if args[0] isnt '*'
-		arguments.callee '*', args
+		arguments.callee.apply '*', args
 
 	web.emitter.emit.apply web.emitter, args
-
-# expecting message from proccess.send()
-# { cmd: '', workerId: 0, args: [] }
-web.emit.parseArgs = (message) ->
-	eventName	= message.args[0]
-	args		= message.args[1]
-
-	botName	= lirc.botnet.bots[ message.workerId or 0 ]?.name or ''
-
-	if not eventName
-		return false
-
-	return [eventName, botName].concat args or []
 
 web.emitter._events = {}

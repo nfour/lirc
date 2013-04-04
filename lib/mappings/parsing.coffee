@@ -13,7 +13,6 @@ module.exports = [
 			msg.chan = msg.args or msg.text
 			msg.mask = lirc.parse.mask msg.origin
 
-			delete msg.text
 			delete msg.args
 	]
 	[
@@ -24,7 +23,8 @@ module.exports = [
 			msg.target	= args[0]
 			msg.flags	= msg.text or args[1] or ''
 
-			delete msg.text
+			msg.text = "#{msg.target} #{msg.flags}"
+
 			delete msg.args
 	]
 	[
@@ -36,6 +36,9 @@ module.exports = [
 		(msg) ->
 			msg.target	= msg.args
 			msg.mask	= lirc.parse.mask msg.origin
+
+			msg.reply = (text = '') ->
+				lirc.send.privmsg msg.target, text
 
 			delete msg.args
 	]
@@ -68,7 +71,6 @@ module.exports = [
 			msg.chan	= args[1] or ''
 
 			delete msg.args
-			delete msg.text
 	]
 	[
 		# args: <target> [@*=] <chan>
@@ -86,6 +88,5 @@ module.exports = [
 			msg.names	= msg.text.split ' '
 
 			delete msg.args
-			delete msg.text
 	]
 ]

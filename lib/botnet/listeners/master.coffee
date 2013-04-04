@@ -18,7 +18,7 @@ module.exports = {
 				lirc.web.emit message
 
 			when 'emit.botnet'
-				botnet.emit.local message.args
+				botnet.emit.local message.args[0], message
 				botnet.emit message
 
 			when 'emit.botnet.workers'

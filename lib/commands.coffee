@@ -17,16 +17,21 @@ lirc.send = () ->
 	str = text + '\r\n'
 
 	lirc.session.conn.write str
-	lirc.botnet.emit.master {
-		cmd	: 'emit.web'
-		args: ['send', [str]]
+
+	msg = {
+		cmd: 'SEND'
+		text: str
+		time: new Date().getTime()
 	}
 
-	console.log '[SEND]', str
+	lirc.botnet.emit.master {
+		cmd	: 'emit.web'
+		args: ['msg', [msg]]
+	}
 
 	return true
 
-lirc.send.privmsg = (target, text) ->
+lirc.send.privmsg = (target, text = '') ->
 	lirc.send 'PRIVMSG', target, ":#{text}"
 
 lirc.send.mode = (target, text) -> # TODO: need to parse add arguments

@@ -17,13 +17,6 @@ module.exports = [
 				lirc.emit 'USERMSG', msg
 	]
 	[
-		'NOTICE'
-		(msg) ->
-			#if msg.target is 'AUTH'
-
-
-	]
-	[
 		'PING'
 		(msg) ->
 			lirc.send 'PONG', msg.text

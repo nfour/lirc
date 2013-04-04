@@ -43,6 +43,7 @@ lirc.parse = {
 			cmd			: 'UNKNOWN'
 			args		: ''
 			text		: ''
+			time		: new Date().getTime()
 		}
 
 		# [:<origin>] <cmd> [<args>] [:<text>]
@@ -50,7 +51,7 @@ lirc.parse = {
 			^ (?: :(\S+) \s )?						# origin
 			(\S+)									# cmd
 			(?: \s
-				(?: ( [^:]+ ) )?		# args
+				(?: ( [^:]+ ) )?					# args
 				(?: :(.*) )?						# text
 			)?
 		///
@@ -65,15 +66,15 @@ lirc.parse = {
 
 	command: (cmd) ->
 		for key of codes
-			if cmd is key then cmd = codes[key]
+			if cmd is key
+				return codes[key]
 
 		return cmd
 
 	mapping: (name, msg) ->
 		mapping = lirc.mappings[ name ] or undefined
 
-		if not mapping
-			return console.error "Mapping '#{name}' not defined"
+		return msg if not mapping
 
 		index = mappingIndexes[ name ]?[ msg.cmd ]
 

@@ -2,6 +2,7 @@
 path = require 'path'
 
 module.exports = {
+	ascii: false
 	root: path.dirname __dirname
 
 	templating: {
