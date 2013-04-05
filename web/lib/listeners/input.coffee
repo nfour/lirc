@@ -9,14 +9,15 @@ listeners		= {
 	input: (text) ->
 		return false if not text
 
-		web.emit 'input', text
-
 		words = text.split ' '
 
 		return false if not words[0]
 
-		cmd = words[0].toLowerCase().replace /^\./, ''
-		
+		cmd		= words[0].toLowerCase().replace /^\./, ''
+		socket	= this
+		now		= new Date().getTime()
+
+		web.emit 'input', text
 		switch cmd
 			#when 'privmsg'
 			#	lirc.send.privmsg words[1], words[2] or ''
@@ -33,7 +34,7 @@ listeners		= {
 				if lirc.botnet.restart name
 					web.emit 'lirc', {
 						text: 'Restarted bot ' + name
-						time: new Date().getTime()
+						time: now
 					}
 
 			when 'restartall'
@@ -44,7 +45,7 @@ listeners		= {
 
 					web.emit 'lirc', {
 						text: 'Restarted bot ' + bot.name
-						time: new Date().getTime()
+						time: now
 					}
 
 			when 'spawn'
@@ -53,7 +54,7 @@ listeners		= {
 				if lirc.botnet.spawn name
 					web.emit 'lirc', {
 						text: 'Spawned bot ' + name
-						time: new Date().getTime()
+						time: now
 					}
 
 			when 'kill'
@@ -62,7 +63,7 @@ listeners		= {
 				if lirc.botnet.kill name
 					web.emit 'lirc', {
 						text: 'Killed bot ' + name
-						time: new Date().getTime()
+						time: now
 					}
 
 			when 'bots'
@@ -72,14 +73,17 @@ listeners		= {
 
 				web.emit 'lirc', {
 					text: 'Bots: ' + bots.join ', '
-					time: new Date().getTime()
+					time: now
 				}
 
 			when 'buffer'
-				web.emit 'buffer', web.buffer.buffer
+				web.emit.client socket, 'buffer', web.buffer.buffer
 
 	disconnect: () ->
-		console.log 'Web, user disconnected'
+		web.emit 'lirc', {
+			time: new Date().getTime()
+			text: "Web user [ #{this.id} ] disconnected"
+		}
 		delete this
 	
 }

@@ -169,7 +169,8 @@ else
 	# set up some worker relaying
 	workerId = cluster.worker.id
 
-	process.on 'uncaughtException', (err) ->
+	###process.on 'uncaughtException', (err) ->
+
 		lirc.botnet.emit.master {
 			cmd	: 'emit.web'
 			args: ['lirc', [{
@@ -180,7 +181,7 @@ else
 		}
 
 		cluster.worker.disconnect()
-
+	###
 	lirc.on 'msg', (msg) ->
 		lirc.botnet.emit.master {
 			cmd	: 'emit.web'
@@ -193,8 +194,8 @@ else
 		lirc.botnet.emit.master {
 			cmd	: 'emit.web'
 			args: ['botnet', {
-				cmd: massage.args[0]
-				args: if massage.args[1] then massage.args[1..] else []
+				cmd: message.args[0]
+				args: if message.args[1] then message.args[1..] else []
 				time: new Date().getTime()
 			}]
 			fromWorkerId: message.workerId

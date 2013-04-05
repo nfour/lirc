@@ -28,6 +28,16 @@ web.emit = () ->
 		if args[0] isnt 'buffer'
 			web.buffer.add args
 
+web.emit.client = (socket) ->
+	args = Array::slice.call arguments
+	args = args[1..]
+
+	if args = web.emit.parseArgs args
+		socket.emit.apply socket, args
+
+		if args[0] isnt 'buffer'
+			web.buffer.add args
+
 # expecting message from proccess.send()
 # { cmd: '', workerId: 0, args: [] }
 web.emit.parseArgs = (args) ->

@@ -1,12 +1,12 @@
 
-path = require 'path'
-rootDir		= path.dirname __dirname
+Path	= require 'path'
+rootDir	= Path.dirname __dirname
 
 url			= {}
 
 server = {
 	method		: 'socket'
-	socket		: path.join rootDir, '/unix.socket' # ... /web/unix.socket
+	socket		: Path.join rootDir, '/unix.socket' # ... /web/unix.socket
 	socketPerms	: 0o0666
 
 	port		: 1339

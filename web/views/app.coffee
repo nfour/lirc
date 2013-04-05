@@ -8,13 +8,7 @@ cfg = {
 		scrollInertia: 0
 	}
 
-	server: { # could also be a url. may be best to do this
-		port: 1339
-		host: '10.0.0.7'
-	}
-
 	cmdChars: /[\.\+\-]/i
-
 }
 
 $(document).ready ->
@@ -29,7 +23,9 @@ $(document).ready ->
 	for key, val in $html
 		$html[key] = $('<div>').append( val.clone() ).html()
 
-	server.conn = conn = io.connect "http://#{ cfg.server.host }:#{ cfg.server.port }"
+	server.conn = conn = io.connect window.location.host, {
+		#resource: 'lirc/socket.io'
+	}
 
 	# bind listeners to the server
 	bind server.listeners, conn
@@ -81,7 +77,7 @@ server = {
 
 			args.col2Class = 'lirc'
 
-			terminal.addAll '*', args
+			terminal.addAll ['all', 'lirc'], args
 
 		botinfo: (names) ->
 			terminal.buildTerminal names
@@ -286,6 +282,8 @@ terminal = {
 
 	buildTerminal: (names) ->
 		for name in names
+			continue if name of @botMap
+
 			map = {}
 
 			# button

@@ -7,7 +7,6 @@ module.exports = {
 
 	templating: {
 		ect: {
-			ext		: '.ect'
 			findIn	: 'views'
 			minify	: false
 
@@ -20,13 +19,13 @@ module.exports = {
 		}
 
 		stylus: {
-			minify		: true
+			#minify		: true
 			findIn		: 'views'
 			renderTo	: 'static'
 		}
 
 		coffee: {
-			minify		: true
+			#minify		: true
 			findIn		: 'views'
 			renderTo	: 'static'
 		}
