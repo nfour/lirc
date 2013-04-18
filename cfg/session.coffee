@@ -11,7 +11,7 @@ module.exports = {
 		pass: ''
 		
 		user: {
-			nick: '', username: '', realname: '', pass: '',
+			nick: '', altnick: '', username: '', realname: '', pass: '',
 			hostname: '', servername: ''
 		}
 

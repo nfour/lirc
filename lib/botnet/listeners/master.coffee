@@ -3,14 +3,12 @@ lirc = require '../../lirc'
 
 {botnet, web} = lirc
 
-{type} = Function
-
 # cluster events, emitted to the master
 
 module.exports = {
 	message: (message) ->
-		if type( message ) isnt 'object'
-			return lance.error 'warn', "botnet.listeners.master - Non-object vartype #{type( message )}"
+		if typeof message isnt 'object' or not message?.cmd
+			return false
 
 		# ordered from percieved most frequent, descending
 		switch message.cmd
@@ -39,6 +37,15 @@ module.exports = {
 
 			when 'relay'
 				lirc.botnet.emit.worker message
+
+			when 'restart'
+				return false if not name = message.args?[0]
+
+				if lirc.botnet.restart name
+					lirc.web.emit 'lirc', {
+						text: 'Restarted bot ' + name
+						time: new Date().getTime()
+					}
 
 			when 'botnet.info'
 				{id, name, cfg} = message.args

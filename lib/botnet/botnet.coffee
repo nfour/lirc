@@ -1,25 +1,25 @@
 
-Path	= require 'path'
-Fs		= require 'fs'
+path	= require 'path'
+fs		= require 'fs'
 cluster	= require 'cluster'
 lirc	= require '../lirc'
 
-{type} = Function
-
 module.exports	=
 lirc.botnet		=
-botnet			= () ->
+botnet			= {}
 
 botnet.bots = {}
 botnet.cfg = {
-	botsDir: Path.join Path.dirname( process.mainModule.filename ), '/bots'
+	botsDir: path.join path.dirname( process.mainModule.filename ), '/bots'
 }
 
 botnet.kill = (name = '') ->
 	return false if not name
 
 	for id, bot of lirc.botnet.bots
-		if bot.name and name.toLowerCase() is bot.name.toLowerCase()
+		continue if not bot.name
+
+		if name.toLowerCase() is bot.name.toLowerCase()
 			bot.process.kill()
 			delete lirc.botnet.bots[id]
 
@@ -31,7 +31,11 @@ botnet.restart = (name = '') ->
 	return false if not name
 
 	for id, bot of lirc.botnet.bots
-		if bot.name and name.toLowerCase() is bot.name.toLowerCase()
+		continue if not bot.name
+
+		botName = bot.name.toLowerCase()
+
+		if name.toLowerCase() is botName
 			bot.process.kill()
 			delete lirc.botnet.bots[id]
 			botnet.spawn name
@@ -41,12 +45,15 @@ botnet.restart = (name = '') ->
 	return false
 
 botnet.spawn = (botPath) ->
+	botPathLower = botPath.toLowerCase()
 	if cluster.isMaster
 		if (
-			Fs.existsSync( botPath ) or
-			Fs.existsSync( Path.join botnet.cfg.botsDir, botPath )
+			fs.existsSync( botPath ) or
+			fs.existsSync( path.join botnet.cfg.botsDir, botPath ) or
+			useLower = fs.existsSync( path.join botnet.cfg.botsDir, botPathLower )
 		)
-			worker = cluster.fork { lirc_botPath: botPath }
+			botPath	= botPathLower
+			worker	= cluster.fork { lirc_botPath: botPath }
 
 			botnet.bots[worker.id] = worker
 
@@ -63,9 +70,9 @@ botnet.run = (botPath = '') ->
 		else
 			lirc.error 'err', "botnet.run(), cant find bot to run"
 
-	dir = Path.join botnet.cfg.botsDir, botPath
+	dir = path.join botnet.cfg.botsDir, botPath
 
-	if Fs.existsSync dir
+	if fs.existsSync dir
 		require dir
 	else
 		if cluster.isWorker

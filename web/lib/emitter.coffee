@@ -3,13 +3,14 @@ events = require 'events'
 
 lirc	= require '../../lib/lirc'
 web		= require './web'
+cluster	= require 'cluster'
 
-{type} = Function
+{typeOf, toArray} = web.utils
 
 web.emitter = new events.EventEmitter()
 
-web.on = () -> 
-	if type( arguments[0] ) is 'array'
+web.on = () ->
+	if typeOf( arguments[0] ) is 'array'
 		for val in arguments[0]
 			args	= Array::slice.call arguments
 			args[0]	= val
@@ -19,14 +20,24 @@ web.on = () ->
 		web.emitter.on.apply web.emitter, arguments
 
 web.emit = () ->
-	if not web.io?.sockets?
-		return lirc.error 'warn', "web.emit(), web.io.sockets undefined, can't send"
+	if cluster.isMaster
+		if not web.io?.sockets?
+			return lirc.error {
+				type: 'notice'
+				scope: 'lirc.web.emit'
+				error: new Error "web.io.sockets undefined, can't send"
+			}
 
-	if args = web.emit.parseArgs arguments
-		web.io.sockets.emit.apply web.io.sockets, args
+		if args = web.emit.parseArgs arguments
+			web.io.sockets.emit.apply web.io.sockets, args
 
-		if args[0] isnt 'buffer'
-			web.buffer.add args
+			if args[0] isnt 'buffer'
+				web.buffer.add args
+	else
+		lirc.botnet.emit.master {
+			cmd	: 'emit.web'
+			args: toArray arguments
+		}
 
 web.emit.client = (socket) ->
 	args = Array::slice.call arguments

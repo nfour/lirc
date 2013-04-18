@@ -19,7 +19,7 @@ module.exports = {
 	reset			: '\u000F'
 	bold			: '\u0002'
 	#underline		: '\u001' # this somehow errors. wat
-	#italics			: '\u0016' # may also be "reversed" apparently
+	#italics		: '\u0016' # may also be "reversed" apparently
 
 	numbers			: {
 		white			: '00'

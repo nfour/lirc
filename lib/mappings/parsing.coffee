@@ -1,10 +1,7 @@
 
 lirc = require '../lirc'
 
-
 # Matches one array, in order. Indexes to the callbacks are cached on match.
-
-# Deleting of msg.remains temporary
 
 module.exports = [
 	[

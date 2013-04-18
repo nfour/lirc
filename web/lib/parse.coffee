@@ -1,12 +1,9 @@
 
 web = require './web'
 
-{merge, clone} = Object
-{type} = Functions
-
 web.parse = {
 	input: (text = '') ->
-		return text if type( text ) isnt 'string'
+		return text if typeof text isnt 'string'
 
 		lines = text.split '\r\n'
 

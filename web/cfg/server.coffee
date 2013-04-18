@@ -1,23 +1,18 @@
 
-Path	= require 'path'
-rootDir	= Path.dirname __dirname
+path	= require 'path'
+rootDir	= path.dirname __dirname
 
 url			= {}
 
 server = {
-	method		: 'socket'
-	socket		: Path.join rootDir, '/unix.socket' # ... /web/unix.socket
+	method		: 'port'
+	socket		: path.join rootDir, '/unix.socket' # ... /web/unix.socket
 	socketPerms	: 0o0666
 
 	port		: 1339
-	host		: '10.0.0.7'
+	host		: 'localhost'
 	
 	url			: url
 }
-
-# lets just use ports for a predictable url
-server.method	= 'port'
-url.root		= "http://#{server.host}:#{server.port}"
-url.static		= url.root + '/static'
 
 module.exports = server

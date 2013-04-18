@@ -2,8 +2,9 @@
 path = require 'path'
 
 module.exports = {
-	ascii: false
-	root: path.dirname __dirname
+	ascii			: false
+	root			: path.dirname __dirname
+	catchUncaught	: false
 
 	templating: {
 		ect: {
@@ -19,15 +20,23 @@ module.exports = {
 		}
 
 		stylus: {
-			#minify		: true
+			minify		: true
 			findIn		: 'views'
 			renderTo	: 'static'
 		}
 
 		coffee: {
-			#minify		: true
+			minify		: true
 			findIn		: 'views'
 			renderTo	: 'static'
+		}
+
+		js: {
+			minify: true
+		}
+
+		css: {
+			minify: true
 		}
 	}
 }

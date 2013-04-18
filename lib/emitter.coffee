@@ -1,27 +1,27 @@
 
-events = require 'events'
+events	= require 'events'
 lirc	= require './lirc'
 cluster	= require 'cluster'
 
-{type} = Function
+{typeOf, toArray} = lirc.utils
 
 lirc.emitter = new events.EventEmitter()
 
 lirc.on = () ->
-	if type( arguments[0] ) isnt 'array'
+	if typeof arguments[0] is 'string'
 		arguments[0] = [arguments[0]]
 
 	for val in arguments[0]
-		args	= Array::slice.call arguments
+		args	= toArray arguments
 		val		= val.toLowerCase()
 		args[0]	= val
 
 		lirc.emitter.on.apply lirc.emitter, args
 
 lirc.emit = () ->
-	args = Array::slice.call arguments
+	args = toArray arguments
 
-	if type( args[0] ) is 'array' and args.length is 1
+	if typeOf( args[0] ) is 'array' and args.length is 1
 		args = args[0]
 	
 	args[0] = args[0].toLowerCase()

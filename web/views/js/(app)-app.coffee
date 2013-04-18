@@ -23,57 +23,95 @@ $(document).ready ->
 	for key, val in $html
 		$html[key] = $('<div>').append( val.clone() ).html()
 
-	server.conn = conn = io.connect window.location.host, {
-		#resource: 'lirc/socket.io'
-	}
+	server.conn = conn = io.connect window.location.host
 
 	# bind listeners to the server
 	bind server.listeners, conn
 
-	terminal.input.send '.buffer'
+	popupBox = {
+		box			: $('.popupBox')
+		head		: $('.popupBox .head')
+		body		: $('.popupBox .body')
+		closeButton	: $('.popupBox .close')
+
+		hide: -> popupBox.box.hide()
+		show: -> popupBox.box.show()
+
+		scrollbar: -> popupBox.body.mCustomScrollbar 'update'
+	}
+
+	popupBox.body.mCustomScrollbar cfg.scrollbar
+
+	popupBox.closeButton.on 'click', popupBox.hide
+
+	$('.getErrors').on 'click', ->
+		$.ajax {
+			url		: window.location.pathname + '/errors'
+			dataType: 'json'
+			success	: (json) ->
+				popupBox.head.html "Error Log"
+
+				if not json and not json.errors
+					popupBox.body.html 'Empty'
+				else
+					popupBox.body.html ''
+
+					for block in json.errors
+						block = block + '\n---\n\n'
+
+						block = block.replace /\n/g, '<br/>'
+						block = block.replace /\ /g, '&nbsp;'
+						block = block.replace /\t/g, '&#09;'
+
+						popupBox.body.append block
+
+				popupBox.show()
+
+				popupBox.body.mCustomScrollbar cfg.scrollbar
+		}
+
+		return false
 
 # scope variables
-
 server = {
 	conn: undefined
+	hasConnected: false
 
 	listeners: {
 		msg: (bot, msg) ->
 			return false if not server.checkInput arguments
 
-			return false if not args = parseMsg msg
+			args = parseMsg msg
 
 			if args.important
-				terminal.add bot, ['all', 'irc', 'irc_verbose'], args
+				terminal.add bot, ['all', 'irc'], args
 			else
-				terminal.add bot, 'irc_verbose', args
+				terminal.add bot, 'irc', args
 
-			args.col3 = msg.raw
+			args.col3 = msg.raw or ''
 
 			terminal.add bot, 'irc_raw', args
 
 		botnet: (bot, obj, fromBot = bot) ->
-			console.log arguments
-			msg = {
+			args = parseMsg({
 				cmd: fromBot
 				text: "#{obj.cmd}: #{obj.args.join ' '}"
 				time: obj.time
-			}
-
-			return false if not args = parseMsg msg, { nbsp: false }
+			}, { nbsp: false })
 
 			args.col2Class = 'botnet'
 
-			terminal.add bot, ['all', 'botnet'], args
+			terminal.add bot, ['botnet'], args
 
-		lirc: (obj) ->
-			msg = {
+		lirc: (bot, obj) ->
+			if typeof bot isnt 'string'
+				obj = bot
+
+			args = parseMsg {
 				cmd: "Lirc"
-				text: obj.text
+				text: obj.text or '?'
 				time: obj.time
 			}
-
-			return false if not args = parseMsg msg
 
 			args.col2Class = 'lirc'
 
@@ -83,7 +121,13 @@ server = {
 			terminal.buildTerminal names
 
 		buffer: (buffer) ->
-			console.log 'Injecting buffer...'
+			args = parseMsg {
+				cmd: "Buffer"
+				text: "..."
+				time: new Date().getTime()
+			}
+
+			terminal.addAll '*', args
 
 			for args in buffer
 				eventName = args[0]
@@ -94,6 +138,32 @@ server = {
 
 				if eventName of server.listeners
 					server.listeners[ eventName ].apply server.listeners, args[1..]
+
+		connect: () ->
+			if not server.hasConnected
+				terminal.input.send '.buffer'
+				server.hasConnected = true
+
+			args = parseMsg {
+				cmd: "Lirc"
+				text: if server.hasConnected then 'Reconnected...' else 'Connected...'
+				time: new Date().getTime()
+			}
+
+			args.col2Class = 'lirc'
+
+			terminal.addAll ['all', 'lirc'], args
+
+		disconnect: () ->
+			args = parseMsg {
+				cmd: "Lirc"
+				text: "Disconnected..."
+				time: new Date().getTime()
+			}
+
+			args.col2Class = 'lirc'
+
+			terminal.addAll ['all', 'lirc'], args
 	}
 
 	checkInput: (args) ->
@@ -111,10 +181,8 @@ parseMsg = (msg, opt = { nbsp: true }) ->
 		col3: ''
 	}
 
-	msg.text	?= ''
-	msg.raw		?= msg.text
-
-	return false if not msg.text
+	msg.text	= msg.text or ''
+	msg.raw		= msg.raw or msg.text
 
 	if opt.nbsp
 		msg.raw		= msg.raw.replace /\ /g, '&nbsp;' if msg.raw
@@ -181,7 +249,7 @@ terminal = {
 		submit: (text) ->
 			return false if not text
 
-			$('.terminal .input input').attr 'value', ''
+			$('.terminal .input input').val ''
 
 			if text = terminal.input.parse text
 				terminal.input.send text
@@ -207,10 +275,46 @@ terminal = {
 			server.conn.emit 'input', text
 
 			console.log 'Emitted: input,', text
-
+		cache			: []
+		cachePosition	: 0
 		listeners: {
-			keypress: (event) ->
-				if event.which is 13
+			keyup: (event) ->
+				cache		=  terminal.input.cache
+				position	=  terminal.input.cachePosition
+
+				beginPosition = position
+
+				if event.which is 38 # key up
+					position += -1
+
+					if position < 0
+						position = 0
+					
+					if beginPosition is position
+						return false
+
+					terminal.input.cachePosition = position
+					val = cache[position]
+
+					$('.terminal .input input').val val
+
+				if event.which is 40 # key down
+					position += 1
+
+					if position > (cache.length - 1)
+						position = cache.length
+
+					if beginPosition is position
+						return false
+
+					terminal.input.cachePosition = position
+					val = cache[position]
+
+					$('.terminal .input input').val val
+
+				if event.which is 13 # key enter
+					terminal.input.cache.push this.value
+					terminal.input.cachePosition = terminal.input.cache.length
 					terminal.input.submit this.value
 					return false
 
@@ -219,9 +323,7 @@ terminal = {
 
 			focusout: ->
 				$(this).siblings('.caret').removeClass 'active'
-
 		}
-
 	}
 
 	add: (bot, tabs, args) ->
@@ -237,6 +339,7 @@ terminal = {
 
 		for tabName in tabs
 			continue if tabName not of @botMap[bot]?.tabs
+			startTime = new Date().getTime()
 
 			tab = @botMap[bot].tabs[tabName]
 
@@ -249,9 +352,22 @@ terminal = {
 			"""
 			++tab.lines
 
-			if tab.content.hasClass 'active'
+			updatedAt = terminal.scrollbar.updatedAt
+
+			# this stuff is to prevent over-scroll, which lags like fuck
+			scroll = () ->
 				terminal.scrollbar.update bot
 				terminal.scrollbar.scroll bot, 'bottom'
+				updatedAt[bot] = { time: startTime, timeout: false }
+
+			if tab.content.hasClass 'active'
+				if bot of updatedAt and updatedAt[bot].time > (startTime - 100)
+					if timeout = updatedAt[bot].timeout
+						clearTimeout timeout
+
+					updatedAt[bot].timeout = setTimeout scroll, 1000
+				else
+					scroll()
 
 	addAll: (tabs, args) ->
 		for bot of @botMap
@@ -366,18 +482,21 @@ terminal = {
 			if bot
 				$(".bot-content[name=#{bot}] .mCustomScrollbar").mCustomScrollbar 'scrollTo', pos
 			else
-				$(".mCustomScrollbar").each -> $(this).mCustomScrollbar 'scrollTo', pos
+				$(".terminal .mCustomScrollbar").each -> $(this).mCustomScrollbar 'scrollTo', pos
 
 		update: (bot) ->
 			if bot
 				$(".bot-content[name=#{bot}] .mCustomScrollbar").mCustomScrollbar 'update'
 			else
-				$(".mCustomScrollbar").each -> $(this).mCustomScrollbar 'update'
+				$(".terminal .mCustomScrollbar").each -> $(this).mCustomScrollbar 'update'
 
 		build: ($obj) ->
 			$obj.mCustomScrollbar cfg.scrollbar
+
+		updatedAt: {}
 	}
 }
+
 
 # helpers
 

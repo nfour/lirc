@@ -4,13 +4,13 @@ cluster	= require 'cluster'
 lirc	= require '../lirc'
 botnet	= require './botnet'
 
-{type} = Function
+{typeOf} = lirc.utils
 
 module.exports	=
 botnet.emitter	= new events.EventEmitter()
 
 botnet.on = ->
-	if type( arguments[0] ) isnt 'array'
+	if typeof arguments[0] is 'string'
 		arguments[0] = [arguments[0]]
 
 	for val in arguments[0]
@@ -36,7 +36,7 @@ botnet.emit = ->
 botnet.emit.local = ->
 	args = Array::slice.call arguments
 
-	if type( args[0] ) is 'array' and args.length is 1
+	if typeOf( args[0] ) is 'array' and args.length is 1
 		args = args[0]
 
 	args[0] = args[0] or '*'
@@ -61,7 +61,7 @@ botnet.emit.worker = () ->
 botnet.emit.parseArgs = (args) ->
 	args = Array::slice.call args
 
-	if type( args[0] ) is 'object'
+	if typeOf( args[0] ) is 'object'
 		if not args[0].workerId
 			args[0].workerId = cluster.worker?.id or 0
 

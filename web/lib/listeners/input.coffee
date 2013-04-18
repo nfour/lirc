@@ -7,7 +7,8 @@ lirc	= require '../../../lib/lirc'
 module.exports	=
 listeners		= {
 	input: (text) ->
-		return false if not text
+		if typeof text isnt 'string' or not text
+			return false
 
 		words = text.split ' '
 
@@ -18,6 +19,7 @@ listeners		= {
 		now		= new Date().getTime()
 
 		web.emit 'input', text
+		
 		switch cmd
 			#when 'privmsg'
 			#	lirc.send.privmsg words[1], words[2] or ''

@@ -57,42 +57,6 @@ body
 .core
 	padding-top: 6px
 
-.logo
-	margin: 0
-	padding: 8px 0 0 24px
-	line-height: 0
-
-	a
-		display: inline-block
-		padding: 0 2px
-
-		border-bottom: 2px solid #69A956cc
-
-		line-height: 19px
-		font-size: 22px
-		font-family: arial
-		font-style: italic
-
-		text-shadow: 0 1px 4px #000a
-
-		color: #8D8D8D
-		text-shadow: 0 2px 0 #000
-
-		opacity: 0.8
-
-		.lower-case
-			font-size: 15px
-			text-transform: uppercase
-
-		.name-irc
-			font-family: tahoma
-			font-style: normal
-
-			color: #69A956
-			text-shadow: 0 2px 0 #000, 0 0 50px #85DA12cc
-		&:hover
-			opacity: 1
-
 .terminal-outer
 	min-width: 512px
 
@@ -342,6 +306,80 @@ body
 		&:last-child
 			border-right: 0
 
+
+.footer-bar
+	clear: both
+	height: 35px
+
+	.button
+		float: left
+		margin-right: 10px
+		margin-top: 6px
+		padding: 5px 10px 6px
+		font-size: 14px
+		font-weight: bold
+		color: #646464
+		text-shadow: 0 1px 0 #000, 0 1px 2px #0005
+		border-radius: 3px
+		border: 1px solid #1e1e1e
+		border-bottom-width: 2px
+		box-shadow: -1px 2px 2px 0 ($outer = #bfbfbf03),
+					1px 2px 2px 0 $outer,
+					0 1px 0 1px #a9a9a903 inset,
+					0 -1px 0 0 #a9a9a907 inset,
+					0 2px 0 0 #a9a9a903 inset
+
+		&:hover
+			color: #6D944B
+			border-color: #1b1b1b
+			box-shadow: -1px 2px 2px 0 ($outer = #bfbfbf04),
+						1px 2px 2px 0 $outer,
+						0 1px 0 1px #a9a9a908 inset,
+						0 -1px 0 0 #a9a9a908 inset,
+						0 2px 0 0 #a9a9a906 inset
+
+		&:active
+			border-width: 2px 1px 1px
+			
+
+.logo
+	margin: 0
+	line-height: 0
+	float: left
+	margin-left: 22px
+	padding: 3px 10px 5px !important
+
+	a
+		display: inline-block
+		padding: 0 2px
+
+		border-bottom: 2px solid #69A956cc
+
+		line-height: 17px
+		font-size: 18px
+		font-family: arial
+		font-style: italic
+
+		text-shadow: 0 1px 4px #000a
+
+		color: #8D8D8D
+		text-shadow: 0 2px 0 #000
+
+		opacity: 0.8
+
+		.lower-case
+			font-size: 14px
+			text-transform: uppercase
+
+		.name-irc
+			font-family: tahoma
+			font-style: normal
+
+			color: #69A956
+			text-shadow: 0 2px 0 #000
+		&:hover
+			opacity: 1
+
 .footer
 	margin-top: 16px
 	margin-bottom: 20px
@@ -364,6 +402,64 @@ body
 
 	h2
 		padding-left: 15px
+
+.popupBox
+	display: none
+	position: fixed
+	left: 50%
+	top: 50%
+	width: 960px
+	height: 600px
+	margin-left: -( @width / 2 )
+	margin-top: -( @height / 2 )
+
+	padding: 3px
+	background-color: #272727
+	box-shadow: 0 1px 14px 0 #0008,
+				0 0 0 1px #0006
+
+	.head
+		padding: 4px 12px 6px
+
+		text-align: center
+		background-color: #222
+		font-size: 16px
+		font-weight: bold
+		color: #668C4D
+
+	.body
+		padding: 6px 8px
+		overflow: auto
+		height: 535px
+		margin: 8px 0
+
+		color: #afafaf
+		font-size: 13px
+		font-family: monospace
+
+	.close
+		position: relative
+		top: -3px
+		right: -3px
+		float: right
+		padding: 0px 8px 3px
+		line-height: 13px
+
+		font-size: 13px
+		color: #888
+		background-color: #9D484814
+		font-weight: bold
+		border: 3px solid #7D4F4F0f
+		border-radius: 0 0 0 4px
+		box-shadow: -1px 1px 5px 0 #0001
+
+		&:hover
+			background-color: #9D484822
+			border-color: #7D4F4F19
+			color: #fff
+			text-shadow: 0 0 16px #fffa
+			cursor: pointer
+			box-shadow: -1px 1px 5px 0 #0003
 
 // Scrollbar
 
@@ -408,4 +504,17 @@ body
 	border-radius: 10px
 
 	box-shadow: 0 0 0 1px #0005
+
+.popupBox
+	.mCSB_container
+		padding-right: 8px
+
+	.mCSB_draggerContainer
+		margin-left: 5px
+
+	.mCSB_draggerRail
+		border-left: 0
+		border-right: 0
+		border-radius: 0
+
 

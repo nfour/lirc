@@ -4,14 +4,19 @@ cluster	= require 'cluster'
 
 module.exports = {
 	data: (data) ->
-		lirc.emit 'raw', data
 		lirc.parse.raw data
+		lirc.emit 'raw', data
 
 	connect: () ->
-		console.log 'Socket, Connect'
+		console.log 'Net socket connected'
 
 		lirc.emit 'connect'
-	
+
+	secureConnection: () ->
+		console.log 'TLS socket connected'
+
+		lirc.emit 'connect'
+
 	error: (err) ->
 		console.log 'Socket, Error: ', err
 		lirc.emit 'error', err

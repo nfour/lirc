@@ -3,7 +3,7 @@ lirc = require '../lirc'
 
 ###
 	One of these will be called (in order) if the msg.cmd
-	matches via regexp or a string comparison
+	matches via regexp or a === comparison
 ###
 
 module.exports = [
@@ -38,6 +38,12 @@ module.exports = [
 		'RPL_ENDOFMOTD'
 		(msg) ->
 			lirc.emit 'MOTD', lirc.session.server.motd
+	]
+	[
+		'ERR_NICKNAMEINUSE'
+		(msg) ->
+			lirc.session.server.user.nick = lirc.session.server.user.altnick
+			lirc.auth()
 	]
 	[
 		'RPL_WELCOME'

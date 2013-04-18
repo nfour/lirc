@@ -7,56 +7,84 @@ lance	= require 'lance'
 cluster = require 'cluster'
 fs		= require 'fs'
 
-{merge, clone} = Object
-{type, empty} = Function
-
-defaultCfg = require '../cfg/lirc'
-
 module.exports	=
 lirc			= (newCfg = {}) ->
-	lirc.cfg = merge clone( defaultCfg ), newCfg
+	lirc.cfg = cfg = merge lirc.cfg, newCfg
 
-	lirc.session.build lirc.cfg
+	lirc.session.build cfg
+
+	lirc.rootDir = path.dirname __dirname
 
 	if cluster.isWorker
 		lirc.botnet.emit.master {
 			cmd: 'botnet.info'
 			args: {
 				name: lirc.session.me
-				cfg	: lirc.cfg
+				cfg	: cfg
 				id	: cluster.worker.id
 			}
 		}
 
-	if lirc.cfg.ascii and cluster.isMaster
+	if cfg.ascii and cluster.isMaster
 		console.log """
-		\       __          
-		\      / /__________
-		\     / / / ___/___/
-		\    / / / / / /__  
-		\   /_/_/_/  \\___/  
-		\                   
+			\       __          
+			\      / /__________
+			\     / / / ___/___/
+			\    / / / / / /__  
+			\   /_/_/_/  \\___/  
+			\                   
 		"""
+	
+	if cfg.catchUncaught
+		process.on 'uncaughtException', lirc.error
 
 	return lirc
 
-lirc.cfg = null
+lirc.cfg = require '../cfg/lirc'
+lirc.utils = lance.utils
 
-lirc.error = (type, scope = '', msg...) ->
-	if arguments.length >= 3
-		result = "!! #{type} in #{scope}: #{ msg.join ' ' }"
-	else if arguments.length is 2
-		result = "!! #{arguments[0]} in #{scope}"
-	else if arguments.length is 1
-		result = "!! #{arguments[0]}"
-	
-	console.error result
-	
-	return result
+{merge, clone, typeOf, empty} = lirc.utils
+
+lirc.error = () ->
+	error = lance.error.parse arguments
+
+	console.error error.text
+	lance.error.write error.text, lirc.rootDir
+
+	if error.severity is 'fatal'
+		if cluster.isMaster
+			lirc.web.emit 'lirc', {
+				text: error.text.replace /\n/g, '<br/>'
+				time: new Date().getTime()
+			}
+
+			lirc.web.emit 'lirc', {
+				text: 'Master error, killing Lirc...'
+				time: new Date().getTime()
+			}
+
+			setTimeout process.kill, 5000
+		else
+			lirc.botnet.emit.master {
+				cmd	: 'emit.web'
+				args: ['lirc', [{
+					text: error.text.replace /\n/g, '<br/>'
+					time: new Date().getTime()
+				}]]
+			}
+
+			setTimeout (->
+				lirc.botnet.emit.master {
+					cmd: 'restart'
+					args: [lirc.session.me]
+				}
+			), 5000
+
+			setTimeout (-> cluster.worker.process.kill() ), 10000
 
 lirc.connect = (newCfg, done = ->) ->
 	if not lirc.cfg
-		if type( newCfg ) is 'object'
+		if typeOf( newCfg ) is 'object'
 			lirc newCfg
 		else
 			return done 'Lirc not initialized', null
@@ -124,22 +152,6 @@ lirc.connect.configure = (conn) ->
 	conn.setEncoding lirc.cfg.encoding
 	conn.setKeepAlive true, lirc.cfg.keepAlive
 
-lirc.auth = (user) ->
-	{user} = lirc.session.server if not user
-
-	userStr = [
-		user.username
-		user.hostname or user.username
-		user.server or user.username
-		':' + user.realname
-	].join ' '
-
-	if user.pass
-		lirc.send 'PASS', user.pass
-
-	lirc.send 'NICK', user.nick
-	lirc.send 'USER', userStr
-
 lirc.codes = require './format_codes'
 
 lirc.listeners = {
@@ -152,36 +164,18 @@ lirc.mappings = {
 }
 
 # Each module below extends lirc on it own
-require './format'
-require './parse'
+require './build'
 require './emitter'
-require './session'
 require './commands'
 require './botnet/botnet'
+require './session'
 
 if cluster.isMaster
-	lirc.web = require '../web'
+	require '../web'
 
 	cluster.on 'disconnect', (worker) ->
-		console.error "Worker [ #{worker.id} ] died"
-
+		console.log "Worker [ #{worker.id} ] died"
 else
-	# set up some worker relaying
-	workerId = cluster.worker.id
-
-	###process.on 'uncaughtException', (err) ->
-
-		lirc.botnet.emit.master {
-			cmd	: 'emit.web'
-			args: ['lirc', [{
-				text: 'Uncaught Error: ' + err
-				time: new Date().getTime()
-			}]]
-			fromWorkerId: workerId
-		}
-
-		cluster.worker.disconnect()
-	###
 	lirc.on 'msg', (msg) ->
 		lirc.botnet.emit.master {
 			cmd	: 'emit.web'

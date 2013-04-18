@@ -1,13 +1,10 @@
 
-require './format'
-
 lirc = require './lirc'
 
-{merge, clone} = Object
+{merge, clone} = lirc.utils
 
-# session remains a plain object for ease of use
-session =
-lirc.session = require '../cfg/session'
+session			=
+lirc.session	= require '../cfg/session'
 
 defaultSession = clone session
 
@@ -26,7 +23,7 @@ session.build = (cfg) ->
 	else if cfg.servers
 		# iterate over specified servers, replacing values from defaults for each server
 		for obj in cfg.servers
-			session.servers.push merge merge( {}, defaultSession.server ), obj
+			session.servers.push merge clone( defaultSession.server ), obj
 
 		# sets first server in array to the "current" session.server
 		session.server = session.servers[0]
@@ -44,6 +41,7 @@ session.build = (cfg) ->
 	user.realname = user.realname or user.username
 
 	user.nick = lirc.format.nick user.nick
+	user.altnick = lirc.format.nick user.altnick or user.nick + '?'
 
 	session.server.user	= user
 	session.me			= cfg.me or user.username

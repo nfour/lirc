@@ -4,13 +4,12 @@ cluster	= require 'cluster'
 
 {botnet, web} = lirc
 
-{type} = Function
-
 # cluster events, emitted to workers
 
 module.exports = {
 	message: (message) ->
-		return false if type( message ) isnt 'object'
+		if typeof message isnt 'object' or not message?.cmd
+			return false
 
 		# message is { cmd: '', args: [] }
 
@@ -32,7 +31,5 @@ module.exports = {
 				}
 
 	exit: (worker) ->
-		console.log 'worker exits, with suicide: ' + worker.suicide
-		if not worker.suicide and worker.name
-			lirc.botnet.spawn worker.name
+		console.log "Worker #{worker.id} exits. Suicide: " + worker.suicide
 }

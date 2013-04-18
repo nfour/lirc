@@ -3,10 +3,7 @@
 	<head>
 		<link media="screen" type="text/css" href="<<= @site.url.static >>/style.css" rel="stylesheet" />
 		<title>Lirc</title>
-		<script src="<<= @site.url.static >>/js/jquery.js"></script>
-		<script src="<<= @site.url.static >>/js/jquery-ui-1.8.23.custom.min.js"></script>
-		<script src="<<= @site.url.static >>/js/jquery.mousewheel.js"></script>
-		<script src="<<= @site.url.static >>/js/jquery.mCustomScrollbar.min.js"></script>
+		<script src="<<= @site.url.static >>/app.js"></script>
 	</head>
 	<body>
 		<div class="core">
@@ -18,21 +15,18 @@
 					<div class="terminal-tabs">
 						<div class="tab active" name="all">All</div>
 						<div class="tab" name="irc">IRC</div>
-						<div class="tab" name="irc_verbose">IRC <small>Verbose</small></div>
 						<div class="tab" name="irc_raw">IRC <small>Raw</small></div>
 						<div class="tab" name="botnet">Botnet</div>
 						<div class="tab" name="lirc">Lirc</div>
 
 						<div class="right">
-							<div class="tab" name="channel">+ Ch</div>
-							<div class="tab" name="dialog">+ Di</div>
+							<div class="tab" name="client">~</div>
 						</div>
 					</div>
 					<div class="terminal">
 						<div class="content">
 							<div class="table tab-content active" name="all"></div>
 							<div class="table tab-content" name="irc"></div>
-							<div class="table tab-content" name="irc_verbose"></div>
 							<div class="table tab-content" name="irc_raw"></div>
 							<div class="table tab-content" name="botnet"></div>
 							<div class="table tab-content" name="lirc"></div>
@@ -44,7 +38,10 @@
 				</div>
 			</div>
 		</div>
-		<h1 class="logo"><a href="<<= @site.url.root >>">L<span class="name-irc">irc</span></a></h1>
+		<div class="footer-bar">
+			<h1 class="logo button"><a href="<<= @site.url.root >>">L<span class="name-irc">irc</span></a></h1>
+			<a href="#" class="getErrors button">Error Logs</a>
+		</div>
 		<div class="footer">
 			<h2>Commands</h2>
 			<div class="table commands">
@@ -72,7 +69,10 @@
 				</div>
 			</div>
 		</div>
+		<div class="popupBox">
+			<div class="close">x</div>
+			<div class="head">~</div>
+			<div class="body">...</div>
+		</div>
 	</body>
-	<script src="<<= @site.url.static >>/js/socket.io.js"></script>
-	<script src="<<= @site.url.static >>/app.js"></script>
 </html>

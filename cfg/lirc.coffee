@@ -1,6 +1,8 @@
 
 module.exports = {
-	ascii: true
+	ascii			: true
+	catchUncaught	: true
+	
 	user: {
 		nick: 'lircer???'
 	}
