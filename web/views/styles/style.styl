@@ -418,6 +418,20 @@ body
 	box-shadow: 0 1px 14px 0 #0008,
 				0 0 0 1px #0006
 
+	&.small
+		left: 50%
+		top: 50%
+		width: 350px
+		height: 120px
+		margin-left: -( @width / 2 )
+		margin-top: -( @height / 2 )
+
+		.body
+			font-family: inherit
+			text-align: center
+			color: #858585
+			font-size: 14px
+
 	.head
 		padding: 4px 12px 6px
 
@@ -433,7 +447,7 @@ body
 		height: 535px
 		margin: 8px 0
 
-		color: #afafaf
+		color: #A7A7A7
 		font-size: 13px
 		font-family: monospace
 

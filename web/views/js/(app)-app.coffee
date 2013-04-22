@@ -12,6 +12,8 @@ cfg = {
 }
 
 $(document).ready ->
+	rootPath = window.location.pathname.replace /\/$/, ''
+
 	# create selectors
 	$html = {
 		terminal	: $('.terminal-outer')
@@ -34,29 +36,80 @@ $(document).ready ->
 		body		: $('.popupBox .body')
 		closeButton	: $('.popupBox .close')
 
-		hide: -> popupBox.box.hide()
+		small: -> popupBox.box.addClass 'small' if not popupBox.box.hasClass 'small'
+		big: -> popupBox.box.removeClass 'small'
+		hide: ->
+			popupBox.box.hide()
+			popupBox.box.removeClass 'small' # means small must be added before every show()
+
 		show: -> popupBox.box.show()
 
 		scrollbar: -> popupBox.body.mCustomScrollbar 'update'
 	}
 
 	popupBox.body.mCustomScrollbar cfg.scrollbar
-
 	popupBox.closeButton.on 'click', popupBox.hide
 
-	$('.getErrors').on 'click', ->
+	$('.purgeErrors').on 'click', ->
+		popupBox.hide()
+		popupBox.small()
+		popupBox.head.html "Error.log Purge"
+
 		$.ajax {
-			url		: window.location.pathname + '/errors'
+			url		: rootPath + '/errors?purge=1'
 			dataType: 'json'
+			error: -> popupBox.body.html "The AJAX request failed for path [ #{rootPath + '/errors'} ]."
 			success	: (json) ->
-				popupBox.head.html "Error Log"
+				popupBox.body.html ''
 
-				if not json and not json.errors
-					popupBox.body.html 'Empty'
-				else
-					popupBox.body.html ''
+				if not json
+					popupBox.body.html 'Query failure.'
 
-					for block in json.errors
+				else if json.error
+					popupBox.big()
+					popupBox.body.html json.error
+
+				else if json.code is 'empty'
+					popupBox.body.html 'The error.log is empty.'
+
+				else if json.code is 'success'
+					popupBox.body.html 'The error.log has been purged.'
+
+			complete: ->
+				popupBox.show()
+				popupBox.body.mCustomScrollbar cfg.scrollbar
+
+		}
+
+		return false
+
+	$('.getErrors').on 'click', ->
+		console.log 'FUCKING CLICKED YO'
+		popupBox.hide()
+		popupBox.head.html "Error.log"
+
+		$.ajax {
+			url		: rootPath + '/errors'
+			dataType: 'json'
+			error: -> popupBox.body.html "The AJAX request failed for path [ #{rootPath + '/errors'} ]."
+			success: (json) ->
+				popupBox.body.html ''
+
+				console.log 'okay'
+
+				if not json
+					popupBox.small()
+					popupBox.body.html 'Query failure.'
+
+				else if json.error
+					popupBox.body.html json.error
+
+				else if not json.blocks or json.code is 'empty'
+					popupBox.small()
+					popupBox.body.html 'The error.log is empty.'
+
+				else if json.blocks
+					for block in json.blocks
 						block = block + '\n---\n\n'
 
 						block = block.replace /\n/g, '<br/>'
@@ -65,8 +118,8 @@ $(document).ready ->
 
 						popupBox.body.append block
 
+			complete: ->
 				popupBox.show()
-
 				popupBox.body.mCustomScrollbar cfg.scrollbar
 		}
 
@@ -200,29 +253,31 @@ parseMsg = (msg, opt = { nbsp: true }) ->
 		r.important = true
 		r.col2Class = msg.cmd.toLowerCase()
 
+		mask = msg.mask or { nick: '?', raw: '?' }
+
 		if msg.cmd is 'PRIVMSG'
 			if msg.target.match /^[\#\&]/
 				r.col2Class	= 'chanmsg'
 				r.col2		= msg.target or msg.cmd
-				r.col3		= "&lt;#{msg.mask.nick}&gt; #{r.col3}"
+				r.col3		= "&lt;#{mask.nick}&gt; #{r.col3}"
 			else
 				r.col2Class = 'usermsg'
 				r.col2		= msg.target or msg.cmd
-				r.col3		= "&lt;#{msg.mask.nick}&gt; #{r.col3}"
+				r.col3		= "&lt;#{mask.nick}&gt; #{r.col3}"
 
 		if msg.cmd is 'SEND' and msg.text.match /^PONG/
 			r.important = false
 
 		if msg.cmd is 'JOIN'
-			r.col3 = "#{msg.mask.nick} joined #{msg.chan}"
+			r.col3 = "#{mask.nick} joined #{msg.chan}"
 			r.important = false
 
 		if msg.cmd is 'PART'
-			r.col3 = "#{msg.mask.nick} left #{msg.chan}"
+			r.col3 = "#{mask.nick} left #{msg.chan}"
 			r.important = false
 
 		if msg.cmd is 'QUIT'
-			r.col3 = "#{msg.mask.raw} quit"
+			r.col3 = "#{mask.raw} quit"
 			r.important = false
 
 	if r.col2.length > 11

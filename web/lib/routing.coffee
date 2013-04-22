@@ -20,24 +20,49 @@ router.GET '/', 'home', (req, res) ->
 	res.serve 'home'
 
 router.GET '/errors', 'errors', (req, res) ->
+	json = {
+		code: 'success'
+		error: false
+	}
+
 	if not fs.existsSync errorFileDir
-		return res.serve.json false
+		json.code = 'empty'
+		return res.serve.json json
 
-	fs.readFile errorFileDir, 'utf8', (err, file) ->
-		if err
-			lirc.error { type: 'warning', error: err }
-			res.serve.json false
+	if req.GET.purge
+		fs.unlink errorFileDir, (err) ->
+			if err
+				error = lirc.error {
+					type: 'warning'
+					scope: 'router.GET /errors?purge=1 fs.unlink'
+					error: err
+				}
+				json.code	= 'failed'
+				json.error	= error.text
+				return res.serve.json json
 
-		json = {
-			errors: []
-		}
+			res.serve.json json
 
-		for errorBlock in file.toString().split '/err/'
-			errorBlock.replace /^\s+|\s+$/g, ''
-			if errorBlock
-				json.errors.push errorBlock
+	else
+		fs.readFile errorFileDir, 'utf8', (err, file) ->
+			if err
+				error = lirc.error {
+					type: 'warning'
+					scope: 'router.GET /errors/ fs.readfile'
+					error: err
+				}
+				json.code	= 'failed'
+				json.error	= error.text
+				return res.serve.json json
 
-		res.serve.json json
+			json.blocks = []
+
+			for errorBlock in file.toString().split '/err/'
+				errorBlock.replace /^\s+|\s+$/g, ''
+				if errorBlock
+					json.blocks.push errorBlock
+
+			res.serve.json json
 
 
 
