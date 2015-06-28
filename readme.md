@@ -74,7 +74,7 @@ Such errors can be read from the web interface by either reading the error.log f
 screenshot_to_be_taken_and_put_here
 
 ### State of development
-A few features are not stable, incomplete or not yet implimented. I do, however, intend to polish this project.
+A few features are not stable, incomplete or not yet implimented.
 
 - The web interface could use input commands for IRC interactivity, such as joining channels etc. This I believe I may expand into a full IRC client app, with a sidebar channel/dialog tree for each connected bot. Saving configuration, joined channels, keys etc. may pose a design structure issue in that each bot would require an eggdrop-esque .chan file, for meta info like that for persistance between restarts.
 - IRC Protocol filtering, formatting etc. could be fleshed out. Most of the main IRC codes/commands are delt with, but they could be parsed more thoroughly. To elaborate, it's mostly down to parsing the raw IRC string into usable parts and also creating documentation for what perameters are avaliable from each IRC command.
@@ -83,7 +83,7 @@ A few features are not stable, incomplete or not yet implimented. I do, however,
 - SSL/secure connection certs should be re-used and regenerated when expired. At the moment they're generated for each new secure connection.
 - I will impliment an *n* restarts or die rule for bots, though the web interface should remain up even if all of the running bots error out, thus allowing you to check the error log and fix your code.
 
-Lirc is built on top of Lance. Hence the L in Lirc, Lance-irc.
+Lirc is built on top of Lance.
 
 ### Thanks
 Feel free to use any code for your own projects or contribute to this repo.
