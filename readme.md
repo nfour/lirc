@@ -8,7 +8,10 @@
 ```
 Lirc is an irc client for bots.
 
-It has more to it than other node.js irc client modules.
+### Status: *UNMAINTAINED*
+If you have interest in the project please let me know, I may consider a full recode with updated libraries 
+
+Features:
 
 - Built-in **botnet** functionality via the cluster module
 - Instead of telnet, use a **web interface** to administrate bots
