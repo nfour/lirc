@@ -4,8 +4,8 @@
 ,	"main"			: "./index"
 ,	"description"	: "A better IRC client for node"
 ,	"dependencies": {
-		"lance"			: ">= 0.10.x"
-	,	"coffee-script"	: ">= 1.6.x"
+		"lance"			: "0.10.x"
+	,	"coffee-script"	: "1.6.x"
 	,	"lactate"		: "0.13.x"
 	,	"ssl-keygen"	: "0.1.x"
 	,	"socket.io"		: "0.9.x"
