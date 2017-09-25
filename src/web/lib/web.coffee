@@ -19,8 +19,8 @@ web				= (newCfg = {}) ->
 		cfg.method = 'port'
 
 	if cfg.server.method is 'port'
-		cfg.server.url.root			= "http://#{cfg.server.host}:#{cfg.server.port}" if not cfg.server.url.root
-		cfg.server.url.static		= cfg.server.url.root + '/static' if not cfg.server.url.static
+		cfg.server.url.root = "http://#{cfg.server.host}:#{cfg.server.port}" if not cfg.server.url.root
+		cfg.server.url.static = cfg.server.url.root + '/static' if not cfg.server.url.static
 
 	cleanSocket()
 
@@ -54,7 +54,7 @@ web				= (newCfg = {}) ->
 
 	return web
 
-web.cfg = require '../cfg/web'
+web.cfg = require '../cfg'
 
 web.utils = lirc.utils
 

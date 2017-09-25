@@ -5,12 +5,13 @@
 	"scripts": {
 		"build": "./scripts/build.bash",
 		"release": "cd build && npm publish",
-		"preversion": "yarn build"
+		"preversion": "yarn build",
+		"test": "jest -i src"
 	},
 	"dependencies": {
 		"coffee-script": "1",
 		"lactate": "0.13.x",
-		"lance": "0.11",
+		"lance": "^2.10.14",
 		"socket.io": "0.9.x",
 		"ssl-keygen": "0.1.x"
 	},
