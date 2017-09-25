@@ -1,6 +1,6 @@
 {
   "name": "lirc",
-  "version": "0.6.1-0",
+  "version": "0.7.0",
   "description": "An old IRC client for node",
   "scripts": {
     "build": "./scripts/build.bash",
