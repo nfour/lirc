@@ -8,8 +8,10 @@
 ```
 Lirc is an irc client for bots.
 
-### Status: *UNMAINTAINED SINCE 2013*
-If you have interest in the project please let me know, I may consider a full recode with updated libraries 
+## STATUS
+
+- Rough, recently uplifted in terms of tooling
+- Some stupid hardcoded crap
 
 Features:
 
