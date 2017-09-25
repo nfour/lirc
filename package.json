@@ -5,12 +5,14 @@
 	"scripts": {
 		"build": "./scripts/build.bash",
 		"release": "cd build && npm publish",
-		"preversion": "yarn build"
+		"preversion": "yarn build",
+		"test": "mocha --compilers coffee:coffee-script/register **/*.test.coffee"
 	},
 	"dependencies": {
 		"coffee-script": "1",
 		"lactate": "0.13.x",
 		"lance": "0.11",
+		"mocha": "^3.5.3",
 		"socket.io": "0.9.x",
 		"ssl-keygen": "0.1.x"
 	},
@@ -18,8 +20,5 @@
 		"type": "git",
 		"url": "https://github.com/nfour/lirc"
 	},
-	"devDependencies": {
-		"jest": "^21.1.0",
-		"jest-coffee-preprocessor": "^1.0.0"
-	}
+	"devDependencies": {}
 }
