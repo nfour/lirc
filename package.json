@@ -6,7 +6,8 @@
     "build": "./scripts/build.bash",
     "release": "cd build && npm publish",
     "preversion": "yarn build",
-    "test": "mocha --compilers coffee:coffee-script/register **/*.test.coffee"
+    "test": "mocha --compilers coffee:coffee-script/register **/*.test.coffee",
+    "postversion": "yarn build"
   },
   "dependencies": {
     "coffee-script": "1",
