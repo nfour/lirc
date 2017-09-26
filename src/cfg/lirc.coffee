@@ -10,5 +10,4 @@ module.exports = {
 	timeout		: 0
 	encoding	: 'utf8'
 	keepAlive	: 30000
-
 }

@@ -20,6 +20,9 @@ module.exports = {
 		secure			: false
 		useExpiredCert	: true
 		selfSigned		: false
+
+		certKeyFile: ''
+		certFile: ''
 	}
 	servers	: []
 }

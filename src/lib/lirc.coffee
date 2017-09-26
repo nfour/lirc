@@ -106,13 +106,16 @@ lirc.connect = (newCfg, done = ->) ->
 		done null, conn
 	# secure connection
 	else
+		if not cfg.server.certKeyFile || not cfg.server.certFile
+			throw new Error("Missing cert configuration")
+			
 		keygen = require('ssl-keygen').createKeyGen()
 
 		keygen.createKey 'ssl_key', (err, key) =>
 			keygen.createCert 'ssl_key', (err, cert) =>
 
-				key = fs.readFileSync '/home/node/lirc/certs/ssl_key.key', 'utf8'
-				cert = fs.readFileSync '/home/node/lirc/certs/ssl_key.crt', 'utf8'
+				key = fs.readFileSync cfg.server.certKeyFile, 'utf8'
+				cert = fs.readFileSync cfg.server.certFile, 'utf8'
 
 				creds = crypto.createCredentials {
 					key: key
